@@ -1,0 +1,1225 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Skill 2.0 模块化中间件 · 技术架构手册</title>
+<meta name="description" content="Skill 2.0 模块化中间件技术架构手册：把整体技能拆成 SKILL.md / knowledge / templates / data_contract / scripts / config 六类独立模块，L0数据源→L1取数→L2知识→L3计算→L4输出五层解耦，每层可独立使用。含接口契约、独立调用示例、4种集成模式、知识层写作原则与潜在应用。作者：叶青">
+<meta property="og:title" content="Skill 2.0 模块化中间件 技术架构手册 | 投研AI家园">
+<meta property="og:description" content="Skill 2.0 模块化中间件技术架构手册：六类独立模块×五层解耦架构，接口契约、集成模式与潜在应用。作者：叶青">
+<meta property="og:type" content="article">
+<meta property="og:site_name" content="投研AI家园">
+<meta itemprop="name" content="Skill 2.0 模块化中间件 技术架构手册 | 投研AI家园">
+<meta itemprop="description" content="Skill 2.0 模块化中间件技术架构手册：六类独立模块×五层解耦架构，接口契约、集成模式与潜在应用。作者：叶青">
+<meta property="og:url" content="https://github.com/timyefi/skill20-arch">
+<script src="https://cdn.jsdelivr.net/npm/echarts@5.5.0/dist/echarts.min.js"></script>
+<style>
+/* ============================================================
+   fioutput Report Design System · Navy
+   平面 · 无圆角 · 无阴影 · 无斑马纹 · 衬线正文
+   ============================================================ */
+:root{
+  --c-primary:#051C2C;
+  --c-deep:#0A2E44;
+  --c-mid:#0E4D64;
+  --c-teal:#12707E;
+  --c-steel:#4A7A8C;
+  --c-gold:#C8A45A;
+  --c-gold-deep:#8C6D3F;
+  --c-ink:#16242E;
+  --c-body:#33424D;
+  --c-muted:#6B7D88;
+  --c-line:#C9D4DB;
+  --c-line-light:#E4EAEE;
+  --c-bg:#FFFFFF;
+  --c-bg-soft:#F4F7F9;
+  --c-bg-navy:#051C2C;
+  --c-bg-navy2:#0A2E44;
+  --font-body:Georgia,"STSong","SimSun",serif;
+  --font-code:Consolas,"Courier New",monospace;
+}
+*{margin:0;padding:0;box-sizing:border-box;border-radius:0!important}
+html{scroll-behavior:smooth}
+body{
+  font-family:var(--font-body);
+  color:var(--c-body);
+  background:var(--c-bg);
+  line-height:1.75;
+  font-size:16px;
+}
+::selection{background:var(--c-gold);color:var(--c-primary)}
+
+/* ---------- 顶部阅读进度条 ---------- */
+#progress{position:fixed;top:0;left:0;height:3px;width:0;background:var(--c-gold);z-index:1000;transition:width .1s linear}
+
+/* ---------- 容器 ---------- */
+.wrap{max-width:1126px;margin:0 auto;padding:0 64px}
+
+/* ---------- 粘性导航 ---------- */
+nav.toc{
+  position:sticky;top:0;z-index:900;
+  background:var(--c-bg-navy);
+  border-bottom:3px solid var(--c-gold);
+}
+nav.toc .wrap{display:flex;align-items:center;gap:0;padding:0 64px;overflow-x:auto}
+nav.toc .brand{
+  color:#fff;font-size:13px;letter-spacing:.12em;text-transform:uppercase;
+  padding:14px 22px 14px 0;white-space:nowrap;border-right:1px solid rgba(255,255,255,.18);
+  margin-right:8px;font-weight:bold;
+}
+nav.toc a{
+  color:#AFC2CD;text-decoration:none;font-size:13px;padding:16px 15px;white-space:nowrap;
+  border-bottom:3px solid transparent;margin-bottom:-3px;transition:color .25s,border-color .25s;
+}
+nav.toc a:hover{color:#fff}
+nav.toc a.active{color:var(--c-gold);border-bottom-color:var(--c-gold)}
+
+/* ---------- 蓝图式头部 ---------- */
+header.blueprint{
+  background:
+    repeating-linear-gradient(0deg,rgba(255,255,255,.035) 0 1px,transparent 1px 48px),
+    repeating-linear-gradient(90deg,rgba(255,255,255,.035) 0 1px,transparent 1px 48px),
+    linear-gradient(160deg,var(--c-bg-navy) 0%,var(--c-bg-navy2) 70%,#0E4D64 100%);
+  color:#fff;border-bottom:4px solid var(--c-gold);
+}
+header.blueprint .wrap{padding-top:64px;padding-bottom:56px}
+.doc-type{
+  display:inline-block;font-size:12px;letter-spacing:.22em;text-transform:uppercase;
+  color:var(--c-gold);border:1px solid var(--c-gold);padding:6px 14px;margin-bottom:26px;
+}
+header.blueprint h1{
+  font-size:52px;line-height:1.18;font-weight:bold;color:#fff;letter-spacing:.01em;margin-bottom:20px;
+}
+header.blueprint h1 .thin{display:block;font-size:26px;font-weight:normal;color:#9FB6C4;margin-top:10px;letter-spacing:.06em}
+.doc-sub{font-size:17px;color:#C4D3DC;max-width:760px;margin-bottom:34px}
+.doc-meta{display:flex;flex-wrap:wrap;gap:0;border-top:1px solid rgba(255,255,255,.2)}
+.doc-meta span{
+  padding:14px 26px 4px 0;margin-right:26px;font-size:13.5px;color:#9FB6C4;
+}
+.doc-meta b{display:block;font-size:11px;letter-spacing:.16em;text-transform:uppercase;color:var(--c-gold);margin-bottom:4px;font-weight:normal}
+.doc-meta a{color:#fff;text-decoration:none;border-bottom:1px solid var(--c-gold)}
+.doc-meta a:hover{color:var(--c-gold)}
+
+/* ---------- 统计条 ---------- */
+.statband{background:var(--c-bg-soft);border-bottom:1px solid var(--c-line-light)}
+.statband .wrap{display:flex;flex-wrap:wrap;padding-top:0;padding-bottom:0}
+.stat{
+  flex:1 1 0;min-width:150px;padding:30px 22px;border-right:1px solid var(--c-line-light);
+  transition:background .3s;
+}
+.stat:last-child{border-right:none}
+.stat:hover{background:#EBF1F4}
+.stat .num{font-size:42px;font-weight:bold;color:var(--c-primary);line-height:1;font-family:var(--font-body)}
+.stat .num .unit{font-size:18px;color:var(--c-gold-deep);margin-left:3px}
+.stat .lbl{font-size:12.5px;letter-spacing:.14em;text-transform:uppercase;color:var(--c-muted);margin-top:8px}
+
+/* ---------- 章节通用 ---------- */
+section{padding:64px 0 8px;border-bottom:1px solid var(--c-line-light)}
+section:last-of-type{border-bottom:none}
+.sec-kicker{
+  font-size:12px;letter-spacing:.24em;text-transform:uppercase;color:var(--c-gold-deep);
+  display:flex;align-items:center;gap:14px;margin-bottom:12px;
+}
+.sec-kicker::after{content:"";flex:1;height:1px;background:var(--c-line)}
+h2{font-size:32px;color:var(--c-primary);font-weight:bold;margin-bottom:8px;line-height:1.3}
+h3{font-size:21px;color:var(--c-deep);font-weight:bold;margin:34px 0 12px;border-left:4px solid var(--c-gold);padding-left:14px}
+h4{font-size:16.5px;color:var(--c-mid);margin:22px 0 8px;font-weight:bold}
+p{margin-bottom:14px}
+.lead{font-size:17.5px;color:var(--c-ink);margin-bottom:22px}
+strong{color:var(--c-ink)}
+
+/* 滚动显现 */
+.reveal{opacity:0;transform:translateY(26px);transition:opacity .7s ease,transform .7s ease}
+.reveal.visible{opacity:1;transform:none}
+
+/* ---------- 分层架构条 ---------- */
+.layers{margin:30px 0 10px}
+.layer{
+  display:flex;align-items:stretch;border:1px solid var(--c-line);border-bottom:none;
+  background:#fff;transition:background .3s,border-color .3s;
+}
+.layer:last-child{border-bottom:1px solid var(--c-line)}
+.layer:hover{background:var(--c-bg-soft)}
+.layer .tag{
+  flex:0 0 120px;background:var(--c-primary);color:#fff;display:flex;flex-direction:column;
+  justify-content:center;align-items:center;padding:18px 8px;transition:background .3s;
+}
+.layer:hover .tag{background:var(--c-teal)}
+.layer .tag .lid{font-size:20px;font-weight:bold;letter-spacing:.06em}
+.layer .tag .lname{font-size:10.5px;letter-spacing:.14em;text-transform:uppercase;color:var(--c-gold);margin-top:4px;text-align:center}
+.layer .body{flex:1;padding:16px 22px;display:flex;flex-direction:column;justify-content:center}
+.layer .body .lt{font-weight:bold;color:var(--c-ink);font-size:16px}
+.layer .body .ld{font-size:13.5px;color:var(--c-muted);margin-top:2px}
+.layer .mods{display:flex;flex-wrap:wrap;gap:8px;margin-top:10px}
+.chip{
+  font-family:var(--font-code);font-size:12px;background:var(--c-bg-soft);border:1px solid var(--c-line);
+  padding:3px 10px;color:var(--c-mid);transition:all .25s;cursor:default;
+}
+.chip:hover{background:var(--c-primary);color:var(--c-gold);border-color:var(--c-primary)}
+.layer .solo{
+  flex:0 0 130px;display:flex;align-items:center;justify-content:center;font-size:11.5px;
+  letter-spacing:.1em;color:var(--c-teal);border-left:1px dashed var(--c-line);text-transform:uppercase;
+}
+
+/* ---------- DAG 图容器 ---------- */
+.chartbox{border:1px solid var(--c-line);background:#fff;margin:26px 0}
+.chartbox .chead{
+  background:var(--c-primary);color:#fff;font-size:12.5px;letter-spacing:.16em;text-transform:uppercase;
+  padding:10px 18px;display:flex;justify-content:space-between;align-items:center;
+}
+.chartbox .chead .cnote{color:var(--c-gold);letter-spacing:.06em;text-transform:none}
+#dag{width:100%;height:560px}
+
+/* ---------- 模块卡片网格 ---------- */
+.modgrid{display:grid;grid-template-columns:repeat(3,1fr);gap:0;border:1px solid var(--c-line);border-right:none;border-bottom:none;margin:26px 0}
+.modcard{border-right:1px solid var(--c-line);border-bottom:1px solid var(--c-line);padding:22px 20px;background:#fff;transition:background .3s;position:relative}
+.modcard:hover{background:var(--c-bg-soft)}
+.modcard .mlayer{position:absolute;top:0;right:0;font-size:10px;letter-spacing:.14em;background:var(--c-primary);color:var(--c-gold);padding:3px 9px}
+.modcard .mname{font-family:var(--font-code);font-size:15px;font-weight:bold;color:var(--c-primary);margin-bottom:6px;padding-right:40px}
+.modcard .mdesc{font-size:13px;color:var(--c-muted);margin-bottom:14px;min-height:38px}
+.contract{font-family:var(--font-code);font-size:11.5px;line-height:1.9}
+.contract .crow{display:flex;gap:8px}
+.contract .ck{flex:0 0 38px;color:#fff;text-align:center;font-weight:bold;font-size:10.5px;padding-top:2px}
+.contract .ck.in{background:var(--c-teal)}
+.contract .ck.out{background:var(--c-gold-deep)}
+.contract .ck.dep{background:var(--c-steel)}
+.contract .cv{color:var(--c-body);word-break:break-all}
+
+/* ---------- 表格 ---------- */
+/* 表格滚动容器：宽表在容器内横向滚动，不撑破页面（移动端关键）
+   注意：必须隐藏滚动条——否则滚动条占据 15px 内容宽度，
+   导致 width:100% 的表格被压缩（316px 容器 → 301px 表格，视觉上缩在左侧） */
+.table-scroll{overflow-x:auto;-webkit-overflow-scrolling:touch;max-width:100%;margin:20px 0;scrollbar-width:none}
+.table-scroll::-webkit-scrollbar{display:none}
+table{width:100%;border-collapse:collapse;font-size:14px}
+.table-scroll table{margin:0}
+th{
+  text-align:left;background:transparent;color:var(--c-primary);font-size:12px;letter-spacing:.12em;
+  text-transform:uppercase;border-bottom:2px solid var(--c-primary);padding:10px 12px;font-weight:bold;
+}
+td{border-bottom:1px solid var(--c-line-light);padding:10px 12px;vertical-align:top;color:var(--c-body)}
+tr:hover td{background:var(--c-bg-soft)}
+td code,th code{font-family:var(--font-code);font-size:12.5px;background:var(--c-bg-soft);border:1px solid var(--c-line-light);padding:1px 6px;color:var(--c-mid)}
+
+/* ---------- 代码块 + 复制 ---------- */
+.codeblock{position:relative;margin:18px 0;border:1px solid var(--c-line);background:var(--c-bg-navy)}
+.codeblock .clabel{
+  display:flex;justify-content:space-between;align-items:center;background:var(--c-deep);
+  color:var(--c-gold);font-family:var(--font-code);font-size:11.5px;letter-spacing:.08em;padding:7px 14px;
+}
+.codeblock pre{padding:16px 18px;overflow-x:auto;font-family:var(--font-code);font-size:13px;line-height:1.7;color:#D7E3EA}
+.codeblock .copy{
+  position:absolute;top:5px;right:8px;background:transparent;border:1px solid var(--c-gold);
+  color:var(--c-gold);font-family:var(--font-code);font-size:10.5px;padding:3px 10px;cursor:pointer;
+  letter-spacing:.1em;transition:all .25s;
+}
+.codeblock .copy:hover{background:var(--c-gold);color:var(--c-primary)}
+.codeblock .copy.done{background:var(--c-teal);border-color:var(--c-teal);color:#fff}
+.cm{color:#7A93A3}.kw{color:#E8C87A}.st{color:#9FD8CB}.fn{color:#8AB8D8}
+
+/* ---------- 提示框 callout ---------- */
+.callout{border-left:4px solid var(--c-teal);background:var(--c-bg-soft);padding:16px 20px;margin:20px 0;font-size:14px}
+.callout.tip{border-left-color:var(--c-gold)}
+.callout.warn{border-left-color:#B0563B}
+.callout .ct{font-weight:bold;color:var(--c-primary);font-size:13px;letter-spacing:.1em;text-transform:uppercase;margin-bottom:6px}
+.callout.tip .ct{color:var(--c-gold-deep)}
+.callout.warn .ct{color:#B0563B}
+
+/* ---------- 折叠面板 ---------- */
+details{border:1px solid var(--c-line);margin:18px 0;background:#fff}
+details summary{
+  cursor:pointer;padding:14px 18px;font-weight:bold;color:var(--c-primary);font-size:15px;
+  background:var(--c-bg-soft);list-style:none;display:flex;justify-content:space-between;align-items:center;
+  transition:background .25s;
+}
+details summary::-webkit-details-marker{display:none}
+details summary::after{content:"+";font-family:var(--font-code);font-size:18px;color:var(--c-gold-deep);transition:transform .3s}
+details[open] summary::after{transform:rotate(45deg)}
+details summary:hover{background:#EBF1F4}
+details .dbody{padding:18px 20px;border-top:1px solid var(--c-line)}
+
+/* ---------- Tab ---------- */
+.tabs{margin:26px 0;border:1px solid var(--c-line)}
+.tabbar{display:flex;background:var(--c-primary);overflow-x:auto}
+.tabbar button{
+  background:transparent;border:none;color:#9FB6C4;font-family:var(--font-body);font-size:14px;
+  padding:14px 24px;cursor:pointer;border-bottom:3px solid transparent;transition:all .25s;white-space:nowrap;
+}
+.tabbar button:hover{color:#fff}
+.tabbar button.active{color:var(--c-gold);border-bottom-color:var(--c-gold);background:rgba(255,255,255,.05)}
+.tabpanel{display:none;padding:26px 26px 12px;background:#fff}
+.tabpanel.active{display:block;animation:fadein .4s ease}
+@keyframes fadein{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
+
+/* ---------- 降级链 / 路由链 ---------- */
+.chain{display:flex;align-items:stretch;gap:0;margin:26px 0;flex-wrap:wrap}
+.cnode{
+  flex:1 1 0;min-width:150px;border:1px solid var(--c-line);background:#fff;padding:18px 16px;
+  position:relative;transition:background .3s;
+}
+.cnode:hover{background:var(--c-bg-soft)}
+.cnode .cp{font-size:10.5px;letter-spacing:.16em;text-transform:uppercase;color:var(--c-gold-deep);margin-bottom:6px}
+.cnode .cn{font-family:var(--font-code);font-weight:bold;color:var(--c-primary);font-size:14.5px}
+.cnode .cd{font-size:12px;color:var(--c-muted);margin-top:6px}
+.carrow{flex:0 0 44px;display:flex;align-items:center;justify-content:center;color:var(--c-teal);font-size:20px;font-family:var(--font-code)}
+
+/* ---------- 阈值色块 ---------- */
+.th-tight{color:#B0563B;font-weight:bold}
+.th-mid{color:var(--c-gold-deep);font-weight:bold}
+.th-loose{color:var(--c-teal);font-weight:bold}
+
+/* ---------- 页脚 ---------- */
+footer.rpt{background:var(--c-bg-navy);color:#9FB6C4;border-top:4px solid var(--c-gold);margin-top:64px}
+footer.rpt .wrap{display:flex;flex-wrap:wrap;justify-content:space-between;gap:14px;padding-top:34px;padding-bottom:34px;font-size:13px}
+footer.rpt a{color:var(--c-gold);text-decoration:none;border-bottom:1px solid transparent}
+footer.rpt a:hover{border-bottom-color:var(--c-gold)}
+
+/* ---------- 响应式（移动端自适应规范 · fioutput Navy） ----------
+   铁律：≤899px 禁止页面级横向滚动（scrollWidth ≤ innerWidth）
+   表格内部可横向滚动兜底，绝不撑破页面 */
+@media (max-width:899px){
+  .wrap{padding:0 22px}
+  nav.toc .wrap{padding:0 22px}
+  nav.toc a{padding:14px 12px;font-size:12.5px}
+  header.blueprint .wrap{padding-top:44px;padding-bottom:40px}
+  header.blueprint h1{font-size:32px}
+  header.blueprint h1 .thin{font-size:18px}
+  .doc-sub{font-size:15px}
+  .doc-meta span{margin-right:14px;padding-right:14px}
+  section{padding:44px 0 6px}
+  h2{font-size:25px}
+  h3{font-size:18px}
+  .stat{min-width:45%;padding:20px 16px}
+  .stat .num{font-size:30px}
+  /* 网格：!important 压过内联 style 写死的列数 */
+  .modgrid{grid-template-columns:1fr!important}
+  /* grid item 默认 min-width:auto 会被内容撑宽轨道，必须归零 */
+  .modcard{min-width:0}
+  .modcard .mname{overflow-wrap:anywhere}
+  .modcard .mdesc{overflow-wrap:anywhere}
+  .contract .cv{overflow-wrap:anywhere}
+  .layer{flex-wrap:wrap}
+  .layer .tag{flex:1 1 100%;flex-direction:row;gap:12px;padding:10px 16px}
+  .layer .solo{flex:1 1 100%;border-left:none;border-top:1px dashed var(--c-line);padding:8px}
+  /* 表格：由 JS 包裹进 .table-scroll 滚动容器，保持 display:table 列布局
+     机制：统一 table-layout:auto，浏览器按内容量自适应分配列宽（长内容列自动更宽）
+     注意：表头不得设置内联 width，否则会破坏 auto 布局的内容自适应 */
+  .table-scroll table{font-size:12.5px;table-layout:auto}
+  /* 列宽自适应：允许所有文本换行 */
+  table th,table td{word-break:break-word;min-width:0}
+  td code,th code{word-break:break-word;white-space:normal}
+  th{font-size:10.5px;padding:8px 10px}
+  td{padding:8px 10px}
+  /* 降级链：纵向排列，箭头旋转 90° */
+  .chain{flex-direction:column}
+  .cnode{min-width:0}
+  .carrow{flex:0 0 30px;transform:rotate(90deg)}
+  /* 代码块 / 公式 / Tab / 折叠面板 */
+  .codeblock pre{font-size:12px}
+  .formula{font-size:12px}
+  .tabbar button{padding:12px 16px;font-size:13px}
+  .tabpanel{padding:20px 16px 8px}
+  details summary{font-size:14px;padding:12px 14px}
+  #dag{height:420px}
+}
+</style>
+</head>
+<body>
+
+<div id="progress"></div>
+
+<!-- ================= 粘性导航 ================= -->
+<nav class="toc">
+  <div class="wrap">
+    <span class="brand">SKILL2.0 · ARCH</span>
+    <a href="#overview" class="active">01 总览</a>
+    <a href="#registry">02 注册表</a>
+    <a href="#m-skillmd">03 激活</a>
+    <a href="#m-knowledge">04 知识层</a>
+    <a href="#m-templates">05 模板层</a>
+    <a href="#m-contract">06 契约层</a>
+    <a href="#m-scripts">07 引擎层</a>
+    <a href="#m-config">08 配置层</a>
+    <a href="#integration">09 集成</a>
+    <a href="#principles">10 写作原则</a>
+    <a href="#applications">11 应用</a>
+    <a href="#get-skill">12 获取</a>
+  </div>
+</nav>
+
+<!-- ================= 蓝图式头部 ================= -->
+<header class="blueprint">
+  <div class="wrap">
+    <div class="doc-type">Technical Architecture Manual · 解耦与集成指南</div>
+    <h1>Skill 2.0 模块化中间件
+      <span class="thin">从「一个整体技能」到「一台可拆装中间件」· 技术架构手册</span>
+    </h1>
+    <p class="doc-sub">面向集成者与二次开发者：本手册把「Skill 2.0 模块化中间件」范式拆解为六类独立模块（SKILL.md / knowledge / templates / data_contract / scripts / config），并按「数据源 → 取数 → 知识 → 计算 → 输出」五层组织。每个模块独立给出接口契约（IN / OUT / DEP）、最小可运行示例与替换策略——你可以只取一个模块、只查一段知识、或只换一个数据源，而无需吞下整个技能。</p>
+    <div class="doc-meta">
+      <span><b>作者</b>叶青</span>
+      <span><b>版本</b>v2.0.0</span>
+      <span><b>分层</b>L0 – L4 · 5 层</span>
+      <span><b>模块</b>6 类 · 12 卡</span>
+      <span><b>开源仓库</b><a href="https://github.com/timyefi/skill20-arch" id="gh-link-top">GitHub →</a></span>
+      <span><b>落地背景</b>BondClaw 固收体系 · 13 库 · 500+ 逻辑</span>
+    </div>
+  </div>
+</header>
+
+<!-- ================= 统计条 ================= -->
+<div class="statband">
+  <div class="wrap">
+    <div class="stat"><div class="num"><span class="cnt" data-target="13">0</span><span class="unit">个</span></div><div class="lbl">主题数据库</div></div>
+    <div class="stat"><div class="num"><span class="cnt" data-target="500">0</span><span class="unit">+</span></div><div class="lbl">分析逻辑</div></div>
+    <div class="stat"><div class="num"><span class="cnt" data-target="6">0</span><span class="unit">类</span></div><div class="lbl">独立模块</div></div>
+    <div class="stat"><div class="num"><span class="cnt" data-target="5">0</span><span class="unit">层</span></div><div class="lbl">中间件分层</div></div>
+    <div class="stat"><div class="num"><span class="cnt" data-target="4">0</span><span class="unit">种</span></div><div class="lbl">集成模式</div></div>
+    <div class="stat"><div class="num"><span class="cnt" data-target="5">0</span><span class="unit">本</span></div><div class="lbl">已发布手册</div></div>
+  </div>
+</div>
+
+<!-- ================= 01 系统总览 ================= -->
+<section id="overview">
+  <div class="wrap">
+    <div class="reveal">
+      <div class="sec-kicker">Chapter 01 · System Overview</div>
+      <h2>系统总览：从「整体技能」到「模块化中间件」</h2>
+      <p class="lead">Skill 1.0 是<strong>全局可用的整体技能</strong>：一个大的技能包，整体加载、内部黑盒、随写出或随人走。Skill 2.0 把它升级为<strong>模块化中间件</strong>——沿「数据源 → 取数 → 知识 → 计算 → 输出」五层纵向拆开，每一层、每一个模块都有独立接口，<strong>Skill 不必全局可用，清晰拆成一个部分就能为所用</strong>。</p>
+    </div>
+
+    <div class="callout tip reveal">
+      <div class="ct">一句话总纲</div>
+      <strong>「只取一个模块」是 Skill 2.0 的核心用法。</strong>卖方积累基础组件（基础设施），买方组装策略；数据源契约化切换，知识层用市场回验驱动更新（框架 &gt; 具体数值）。本手册的「拆解」本身就是 Skill 2.0 的一次实例化——把一个大 skill 的手册拆成「分层架构 + 模块注册表（接口契约）+ 独立调用示例 + 集成模式」。
+    </div>
+
+    <div class="layers reveal">
+      <div class="layer">
+        <div class="tag"><span class="lid">L4</span><span class="lname">Output</span></div>
+        <div class="body">
+          <span class="lt">输出层 · templates/ 表 / 图 / 文字模板</span>
+          <span class="ld">把计算层结果渲染成表格、图表与文字段落模板，产物自包含、可直接交付</span>
+          <div class="mods"><span class="chip">templates/</span><span class="chip">{{placeholder}} 注入</span><span class="chip">HTML / PNG / MD</span></div>
+        </div>
+        <div class="solo">可独立使用</div>
+      </div>
+      <div class="layer">
+        <div class="tag"><span class="lid">L3</span><span class="lname">Compute</span></div>
+        <div class="body">
+          <span class="lt">计算层 · scripts/ 计算引擎</span>
+          <span class="ld">基于知识层公式与配置层阈值执行计算，产出结构化指标</span>
+          <div class="mods"><span class="chip">scripts/compute.py</span><span class="chip">分位数/中枢</span><span class="chip">评分卡</span></div>
+        </div>
+        <div class="solo">可独立使用</div>
+      </div>
+      <div class="layer">
+        <div class="tag"><span class="lid">L2</span><span class="lname">Knowledge</span></div>
+        <div class="body">
+          <span class="lt">知识层 · knowledge/ 公式·阈值·案例 + data_contract</span>
+          <span class="ld">纯静态文件：分析逻辑、公式、市场案例、字段契约——可回验更新</span>
+          <div class="mods"><span class="chip">knowledge/*.md</span><span class="chip">data_contract.yaml</span></div>
+        </div>
+        <div class="solo">可独立使用</div>
+      </div>
+      <div class="layer">
+        <div class="tag"><span class="lid">L1</span><span class="lname">Fetcher</span></div>
+        <div class="body">
+          <span class="lt">取数层 · scripts/ 取数引擎</span>
+          <span class="ld">按契约字段从数据源取数，返回统一 DataFrame，字段名与数据源解耦</span>
+          <div class="mods"><span class="chip">scripts/fetch.py</span><span class="chip">凭证 config</span><span class="chip">统一列名</span></div>
+        </div>
+        <div class="solo">可独立使用</div>
+      </div>
+      <div class="layer">
+        <div class="tag"><span class="lid">L0</span><span class="lname">Source</span></div>
+        <div class="body">
+          <span class="lt">数据源层 · 中债登估值 / iFinD / DM Quant / AKShare / Wind MCP 等</span>
+          <span class="ld">异构数据供给，经 data_contract 契约映射后统一进入中间件</span>
+          <div class="mods"><span class="chip">中债登估值</span><span class="chip">iFinD EDB</span><span class="chip">DM Quant</span><span class="chip">AKShare</span><span class="chip">Wind MCP</span></div>
+        </div>
+        <div class="solo">可独立使用</div>
+      </div>
+    </div>
+
+    <div class="callout reveal">
+      <div class="ct">解耦原则</div>
+      层与层之间只通过<strong>文件契约</strong>（YAML / Markdown / 函数签名）交互，没有运行时强依赖。换数据源 = 只改取数引擎与契约映射；更新知识 = 只改 knowledge 与 config；切换输出形态 = 只换模板。
+    </div>
+
+    <div class="chartbox reveal">
+      <div class="chead"><span>模块依赖 DAG · Module Dependency Graph</span><span class="cnote">自下而上 · 箭头指向依赖方</span></div>
+      <div id="dag"></div>
+    </div>
+  </div>
+</section>
+
+<!-- ================= 02 模块注册表 ================= -->
+<section id="registry">
+  <div class="wrap">
+    <div class="reveal">
+      <div class="sec-kicker">Chapter 02 · Module Registry</div>
+      <h2>模块注册表：六类模块接口契约</h2>
+      <p class="lead">Skill 2.0 把「一个整体技能」拆成<strong>六类独立模块</strong>。每个模块一张「身份证」：<strong>IN</strong>（输入）/ <strong>OUT</strong>（输出）/ <strong>DEP</strong>（依赖）。集成时只需对照契约，无需阅读模块内部实现。</p>
+    </div>
+
+    <div class="modgrid reveal">
+      <div class="modcard">
+        <span class="mlayer">入口</span>
+        <div class="mname">SKILL.md</div>
+        <div class="mdesc">激活指令与场景路由：把一句话任务路由到其他五类模块</div>
+        <div class="contract">
+          <div class="crow"><span class="ck in">IN</span><span class="cv">用户场景描述 / 触发词</span></div>
+          <div class="crow"><span class="ck out">OUT</span><span class="cv">激活指令 + 模块路由</span></div>
+          <div class="crow"><span class="ck dep">DEP</span><span class="cv">knowledge·templates·contract·scripts·config</span></div>
+        </div>
+      </div>
+      <div class="modcard">
+        <span class="mlayer">L2</span>
+        <div class="mname">knowledge/</div>
+        <div class="mdesc">公式·阈值档位·市场案例的方法论层，可回验更新</div>
+        <div class="contract">
+          <div class="crow"><span class="ck in">IN</span><span class="cv">指标名 / 查询意图</span></div>
+          <div class="crow"><span class="ck out">OUT</span><span class="cv">公式 / 阈值档位 / 历史案例</span></div>
+          <div class="crow"><span class="ck dep">DEP</span><span class="cv">—（纯静态，零运行时）</span></div>
+        </div>
+      </div>
+      <div class="modcard">
+        <span class="mlayer">L4</span>
+        <div class="mname">templates/</div>
+        <div class="mdesc">表 / 图 / 文字输出模板，{{placeholder}} 占位符注入</div>
+        <div class="contract">
+          <div class="crow"><span class="ck in">IN</span><span class="cv">结构化数据对象</span></div>
+          <div class="crow"><span class="ck out">OUT</span><span class="cv">HTML / PNG / MD 模板产物</span></div>
+          <div class="crow"><span class="ck dep">DEP</span><span class="cv">计算层数值（弱）</span></div>
+        </div>
+      </div>
+      <div class="modcard">
+        <span class="mlayer">L2</span>
+        <div class="mname">data_contract</div>
+        <div class="mdesc">字段契约：字段名 / 类型 / 单位 / 口径，与数据源无关</div>
+        <div class="contract">
+          <div class="crow"><span class="ck in">IN</span><span class="cv">—（声明式配置）</span></div>
+          <div class="crow"><span class="ck out">OUT</span><span class="cv">字段定义 / 映射 / 单位精度</span></div>
+          <div class="crow"><span class="ck dep">DEP</span><span class="cv">—（数据源无关）</span></div>
+        </div>
+      </div>
+      <div class="modcard">
+        <span class="mlayer">L1+L3</span>
+        <div class="mname">scripts/</div>
+        <div class="mdesc">取数引擎 + 计算引擎，按契约取数、按公式计算</div>
+        <div class="contract">
+          <div class="crow"><span class="ck in">IN</span><span class="cv">凭证 + 契约字段 + 日期区间</span></div>
+          <div class="crow"><span class="ck out">OUT</span><span class="cv">DataFrame / 结构化指标</span></div>
+          <div class="crow"><span class="ck dep">DEP</span><span class="cv">data_contract + config</span></div>
+        </div>
+      </div>
+      <div class="modcard">
+        <span class="mlayer">L2</span>
+        <div class="mname">config/</div>
+        <div class="mdesc">阈值参数，preserve 模式——同步时保留、用户可覆盖</div>
+        <div class="contract">
+          <div class="crow"><span class="ck in">IN</span><span class="cv">参数名</span></div>
+          <div class="crow"><span class="ck out">OUT</span><span class="cv">阈值档位 / 参数取值</span></div>
+          <div class="crow"><span class="ck dep">DEP</span><span class="cv">—（preserve 可覆盖）</span></div>
+        </div>
+      </div>
+    </div>
+
+    <h3 class="reveal">契约文件清单 · 同步策略</h3>
+    <table class="reveal">
+      <thead><tr><th>文件</th><th>层</th><th>角色</th><th>格式</th><th>同步策略</th></tr></thead>
+      <tbody>
+        <tr><td><code>SKILL.md</code></td><td>入口</td><td>激活指令与场景路由</td><td>MD</td><td>overwrite（版本同步）</td></tr>
+        <tr><td><code>knowledge/*.md</code></td><td>L2</td><td>公式 / 阈值档位 / 市场案例</td><td>MD</td><td>preserve（用户可扩可改）</td></tr>
+        <tr><td><code>knowledge/cases/*.md</code></td><td>L2</td><td>历史案例与回验记录</td><td>MD</td><td>preserve</td></tr>
+        <tr><td><code>data_contract.yaml</code></td><td>L2</td><td>字段契约，数据源无关</td><td>YAML</td><td>overwrite（始终更新）</td></tr>
+        <tr><td><code>scripts/fetch.py</code></td><td>L1</td><td>取数引擎</td><td>PY</td><td>overwrite</td></tr>
+        <tr><td><code>scripts/compute.py</code></td><td>L3</td><td>计算引擎</td><td>PY</td><td>overwrite</td></tr>
+        <tr><td><code>templates/*.html</code></td><td>L4</td><td>图表 / 看板模板</td><td>HTML</td><td>overwrite</td></tr>
+        <tr><td><code>templates/*.md</code></td><td>L4</td><td>文字段落模板</td><td>MD</td><td>overwrite</td></tr>
+        <tr><td><code>config/*.yaml</code></td><td>L2</td><td>阈值参数</td><td>YAML</td><td>preserve（用户可覆盖）</td></tr>
+      </tbody>
+    </table>
+  </div>
+</section>
+
+<!-- ================= 03 SKILL.md 模块 ================= -->
+<section id="m-skillmd">
+  <div class="wrap">
+    <div class="reveal">
+      <div class="sec-kicker">Chapter 03 · Module SKILL.md</div>
+      <h2>SKILL.md：激活指令与场景路由</h2>
+      <p class="lead">一句话定位：<strong>技能的中枢神经</strong>——不做计算、不存数据，只负责判断「这句任务该路由到哪一类模块」，再吐出激活指令让 Agent 按契约组装。</p>
+    </div>
+
+    <div class="callout reveal">
+      <div class="ct">接口契约</div>
+      <div class="contract">
+        <div class="crow"><span class="ck in">IN</span><span class="cv">用户场景描述 / 触发词（自然语言）</span></div>
+        <div class="crow"><span class="ck out">OUT</span><span class="cv">场景路由表 + 激活指令（读取哪些模块、执行顺序）</span></div>
+        <div class="crow"><span class="ck dep">DEP</span><span class="cv">knowledge/ · templates/ · data_contract · scripts/ · config/</span></div>
+      </div>
+    </div>
+
+    <h3 class="reveal">输出 Schema · 场景路由</h3>
+    <p>SKILL.md 的输出是一张「场景 → 模块清单」的路由表：</p>
+    <div class="codeblock reveal">
+      <div class="clabel"><span>路由表（示意 Schema）</span></div>
+      <button class="copy" onclick="copyCode(this)">COPY</button>
+<pre><span class="cm">## 场景路由（Skill 2.0 中间件）</span>
+| 用户场景                | 装载模块                                             | 顺序               |
+|------------------------|-----------------------------------------------------|--------------------|
+| "信用利差周报"          | data_contract → scripts → knowledge → templates     | 取数→计算→知识→输出 |
+| "查某个指标公式"        | knowledge 仅读（零取数）                              | 单模块             |
+| "只要某主题原始数据"    | data_contract → scripts/fetch 仅取数                | 单模块             |
+| "换数据源复跑一遍"      | data_contract → scripts（换源）→ 复用后续层          | 局部替换           |</pre>
+    </div>
+
+    <h3 class="reveal">独立使用 · 最小示例</h3>
+    <div class="codeblock reveal">
+      <div class="clabel"><span>只读路由：Agent 加载 SKILL.md 后第一步</span></div>
+      <button class="copy" onclick="copyCode(this)">COPY</button>
+<pre><span class="cm"># Agent 引导（SKILL.md 内嵌）</span>
+1. <span class="fn">读取</span> SKILL.md 的 frontmatter：name / 场景 / 依赖清单
+2. 命中场景 → 按路由表装载对应模块路径
+3. 模块间通过 data_contract 契约衔接，不跨层读脏数据
+4. 每一步输出落到 output/，文件名带 YYYYMMDD</pre>
+    </div>
+
+    <div class="callout tip reveal">
+      <div class="ct">替换策略</div>
+      场景路由是<strong>声明式</strong>的——改写路由表即可把同一套模块重新编排成新品（例如同一批取数+计算模块，路由到「日报」或「周报」模板）。替换 SKILL.md 本身不影响任何模块的接口。
+    </div>
+  </div>
+</section>
+
+<!-- ================= 04 knowledge 知识层 ================= -->
+<section id="m-knowledge">
+  <div class="wrap">
+    <div class="reveal">
+      <div class="sec-kicker">Chapter 04 · Module knowledge/</div>
+      <h2>知识层：公式 · 阈值档位 · 历史案例</h2>
+      <p class="lead">一句话定位：<strong>方法论大脑</strong>——纯静态 Markdown 文件，存「怎么看、怎么算、怎么解读」，不依赖任何运行时，<strong>用市场回验驱动更新</strong>。</p>
+    </div>
+
+    <div class="callout reveal">
+      <div class="ct">接口契约</div>
+      <div class="contract">
+        <div class="crow"><span class="ck in">IN</span><span class="cv">指标名 / 查询意图</span></div>
+        <div class="crow"><span class="ck out">OUT</span><span class="cv">公式定义 / 阈值档位 / 市场案例解析</span></div>
+        <div class="crow"><span class="ck dep">DEP</span><span class="cv">—（纯静态，零运行时；可被 scripts 只读引用）</span></div>
+      </div>
+    </div>
+
+    <h3 class="reveal">输出 Schema · 知识条目</h3>
+    <div class="codeblock reveal">
+      <div class="clabel"><span>knowledge 条目 Schema（JSON 表示）</span></div>
+      <button class="copy" onclick="copyCode(this)">COPY</button>
+<pre>{
+  <span class="st">"indicator"</span>: <span class="st">"信用利差_AAA_3Y"</span>,
+  <span class="st">"definition"</span>: <span class="st">"CS = Y_credit(同评级同期限) − Y_国开债(同期限)"</span>,
+  <span class="st">"bands"</span>: {<span class="st">"tight"</span>: <span class="st">"&lt; 20bp"</span>, <span class="st">"neutral"</span>: <span class="st">"20~35bp"</span>, <span class="st">"loose"</span>: <span class="st">"&gt; 55bp"</span>},
+  <span class="st">"logic"</span>: <span class="st">"框架 &gt; 数值：档位仅作起点，须逐年用分位数回验校准"</span>,
+  <span class="st">"case"</span>: <span class="st">"2024-2025 资产荒：中枢系统性下移，档位整体下调 5~10bp"</span>
+}</pre>
+    </div>
+
+    <h3 class="reveal">独立使用 · 最小示例</h3>
+    <div class="codeblock reveal">
+      <div class="clabel"><span>只查知识：Agent 或人直接读文件，零取数</span></div>
+      <button class="copy" onclick="copyCode(this)">COPY</button>
+<pre><span class="cm"># 人工/Agent 直接读取</span>
+grep <span class="st">"信用利差_AAA_3Y"</span> knowledge/views.md
+grep <span class="st">"评分卡"</span> knowledge/framework.md
+ls knowledge/cases/   <span class="cm"># 历史案例库（回验素材）</span></pre>
+    </div>
+
+    <div class="callout tip reveal">
+      <div class="ct">替换策略</div>
+      knowledge 是<strong>preserve</strong>文件——同步更新技能时保留用户版本。卖方维护「基础框架库」，买方把自己的立场、阈值、案例写进各自的 knowledge 副本。<code>knowledge/</code> 整个目录删掉，其余四类模块依然能取数与计算（只是失去解读能力）。
+    </div>
+  </div>
+</section>
+
+<!-- ================= 05 templates 模板层 ================= -->
+<section id="m-templates">
+  <div class="wrap">
+    <div class="reveal">
+      <div class="sec-kicker">Chapter 05 · Module templates/</div>
+      <h2>模板层：表 / 图 / 文字输出模板</h2>
+      <p class="lead">一句话定位：<strong>车间装配线</strong>——把计算层结果套进预置的表、图、文字模板，用 <code>{{placeholder}}</code> 占位符注入，产出可直接交付的自包含产物。</p>
+    </div>
+
+    <div class="callout reveal">
+      <div class="ct">接口契约</div>
+      <div class="contract">
+        <div class="crow"><span class="ck in">IN</span><span class="cv">结构化数据对象（来自 scripts/compute 输出）</span></div>
+        <div class="crow"><span class="ck out">OUT</span><span class="cv">HTML 看板 / PNG 图表 / MD 文字段落</span></div>
+        <div class="crow"><span class="ck dep">DEP</span><span class="cv">计算层数值（弱依赖，可手工填充）</span></div>
+      </div>
+    </div>
+
+    <h3 class="reveal">输出 Schema · 占位符注入</h3>
+    <div class="codeblock reveal">
+      <div class="clabel"><span>模板产物 Schema</span></div>
+      <button class="copy" onclick="copyCode(this)">COPY</button>
+<pre><span class="cm">&lt;!-- dashboard_template.html 片段 --&gt;</span>
+&lt;h3&gt;信用利差矩阵（bp）&lt;/h3&gt;
+&lt;table&gt;
+  &lt;tr&gt;&lt;td&gt;AAA 3Y&lt;/td&gt;&lt;td&gt;{{cs_AAA_3Y}}&lt;/td&gt;&lt;/tr&gt;
+  &lt;tr&gt;&lt;td&gt;AA+ 5Y&lt;/td&gt;&lt;td&gt;{{cs_AAp_5Y}}&lt;/td&gt;&lt;/tr&gt;
+&lt;/table&gt;
+<span class="cm"># 渲染：python templates/render.py data.json dashboard_template.html</span></pre>
+    </div>
+
+    <h3 class="reveal">独立使用 · 最小示例（只用模板）</h3>
+    <div class="codeblock reveal">
+      <div class="clabel"><span>已有数据，只做输出形态切换</span></div>
+      <button class="copy" onclick="copyCode(this)">COPY</button>
+<pre><span class="kw">from</span> templates.render <span class="kw">import</span> render
+data = {<span class="st">"cs_AAA_3Y"</span>: 21.4, <span class="st">"cs_AAp_5Y"</span>: 47.2}
+<span class="fn">render</span>(data, <span class="st">"templates/dashboard.html"</span>, <span class="st">"output/dash_20260821.html"</span>)
+<span class="fn">render</span>(data, <span class="st">"templates/commentary.md"</span>, <span class="st">"output/cmt_20260821.md"</span>)  <span class="cm"># 同数据出另一种形态</span></pre>
+    </div>
+
+    <div class="callout tip reveal">
+      <div class="ct">替换策略</div>
+      输出形态切换 = 换模板文件，数据与计算层零改动。想从「文字点评」改出「周报表格」「HTML 看板」「PNG 图」，只需准备多套模板并更新 SKILL.md 的路由。模板层甚至可以单独拷走，套用自己的数据源结果。
+    </div>
+  </div>
+</section>
+
+<!-- ================= 06 data_contract 契约层 ================= -->
+<section id="m-contract">
+  <div class="wrap">
+    <div class="reveal">
+      <div class="sec-kicker">Chapter 06 · Module data_contract</div>
+      <h2>契约层：字段契约，数据源无关</h2>
+      <p class="lead">一句话定位：<strong>全库的巴别塔翻译官</strong>——把「中债登的字段名」与「iFinD 的 M码」翻译成统一的业务字段，让上层不关心数据来自哪家。<strong>数据源契约化切换</strong>的根基就在这一层。</p>
+    </div>
+
+    <div class="callout reveal">
+      <div class="ct">接口契约</div>
+      <div class="contract">
+        <div class="crow"><span class="ck in">IN</span><span class="cv">—（声明式配置）</span></div>
+        <div class="crow"><span class="ck out">OUT</span><span class="cv">统一字段名 / 类型 / 单位与精度 / 口径说明</span></div>
+        <div class="crow"><span class="ck dep">DEP</span><span class="cv">—（与数据源完全解耦）</span></div>
+      </div>
+    </div>
+
+    <h3 class="reveal">输出 Schema · data_contract.yaml</h3>
+    <div class="codeblock reveal">
+      <div class="clabel"><span>字段契约（示意）</span></div>
+      <button class="copy" onclick="copyCode(this)">COPY</button>
+<pre>fields:
+  credit_ytm_aaa_3y:
+    business_name: <span class="st">"中短票 AAA 3Y 收益率"</span>
+    type: <span class="st">float</span>
+    unit: <span class="st">"%"</span>
+    source_map:            <span class="cm"># 数据源无关的关键</span>
+      chinabond: <span class="st">"CCC_YTM_AAA3Y"</span>
+      ifind:     <span class="st">"M0016xxxxxx"</span>
+      akshare:   <span class="st">"bond_zh_us_rate"</span>
+  yield_ref_3y:
+    business_name: <span class="st">"国开债 3Y 收益率"</span>
+    unit: <span class="st">"%"</span>
+    source_map:
+      ifind: <span class="st">"M00xxxxxxx"</span></pre>
+    </div>
+
+    <h3 class="reveal">独立使用 · 最小示例</h3>
+    <div class="codeblock reveal">
+      <div class="clabel"><span>换数据源时只改这一层 + 取数引擎配置</span></div>
+      <button class="copy" onclick="copyCode(this)">COPY</button>
+<pre><span class="kw">from</span> data_contract <span class="kw">import</span> load
+c = <span class="fn">load</span>(<span class="st">"data_contract.yaml"</span>)
+<span class="fn">print</span>(c[<span class="st">"credit_ytm_aaa_3y"</span>][<span class="st">"source_map"</span>][<span class="st">"ifind"</span>])  <span class="cm"># M码</span>
+<span class="cm"># 上层脚本只认业务名 credit_ytm_aaa_3y，字段名永不变</span></pre>
+    </div>
+
+    <div class="callout tip reveal">
+      <div class="ct">替换策略</div>
+      新增 / 切换数据源（如中债登直连、自有底稿 Excel），只需在契约里补一段 <code>source_map</code> 并实现对应取数适配——<strong>knowledge、计算层、模板层零改动</strong>。这正是「卖方做基础设施、买方组装策略」的组织方式。
+    </div>
+  </div>
+</section>
+
+<!-- ================= 07 scripts 引擎层 ================= -->
+<section id="m-scripts">
+  <div class="wrap">
+    <div class="reveal">
+      <div class="sec-kicker">Chapter 07 · Module scripts/</div>
+      <h2>引擎层：取数引擎 + 计算引擎</h2>
+      <p class="lead">一句话定位：<strong>唯一会执行代码的层</strong>——取数引擎按契约字段去数据源取数，计算引擎按知识层公式算指标。两者各自独立，可只取数、只计算，或整段替换。</p>
+    </div>
+
+    <div class="callout reveal">
+      <div class="ct">接口契约</div>
+      <div class="contract">
+        <div class="crow"><span class="ck in">IN</span><span class="cv">凭证(config) + 契约字段名 + 日期区间</span></div>
+        <div class="crow"><span class="ck out">OUT</span><span class="cv">统一 DataFrame / 结构化指标</span></div>
+        <div class="crow"><span class="ck dep">DEP</span><span class="cv">data_contract（字段映射）· config（阈值）· 数据源凭证</span></div>
+      </div>
+    </div>
+
+    <h3 class="reveal">取数引擎 · 最小示例</h3>
+    <div class="codeblock reveal">
+      <div class="clabel"><span>只取数：独立于知识层与模板层</span></div>
+      <button class="copy" onclick="copyCode(this)">COPY</button>
+<pre><span class="kw">from</span> scripts.fetch <span class="kw">import</span> Fetcher
+f = Fetcher(source=<span class="st">"ifind"</span>)            <span class="cm"># 凭证读自 config，绝不硬编码</span>
+df = f.fetch(<span class="st">["credit_ytm_aaa_3y","yield_ref_3y"]</span>, <span class="st">"20260717"</span>, <span class="st">"20260821"</span>)
+<span class="cm"># → DataFrame[date, credit_ytm_aaa_3y, yield_ref_3y]（列名即契约业务名）</span></pre>
+    </div>
+
+    <h3 class="reveal">计算引擎 · 最小示例</h3>
+    <div class="codeblock reveal">
+      <div class="clabel"><span>只计算：把取来的 YTM 减成利差 + 分位数</span></div>
+      <button class="copy" onclick="copyCode(this)">COPY</button>
+<pre><span class="kw">from</span> scripts.compute <span class="kw">import</span> spread, percentile
+cs = spread(df)                        <span class="cm"># CS = Y_credit − Y_国开（契约公式）</span>
+p  = percentile(cs, history=df_hist)   <span class="cm"># 历史分位数（回验基础）</span>
+band = band_of(p)                      <span class="cm"># 读 config 阈值档位 → tight/neutral/loose</span></pre>
+    </div>
+
+    <div class="callout tip reveal">
+      <div class="ct">替换策略</div>
+      scripts 是<strong>实现可换、签名不变</strong>的模块：只要新引擎遵守「IN 契约字段 / OUT 统一列名」，整段重写或换成别的语言实现都行。凭证一律经 config 注入，引擎代码内不得出现任何账号 / 密钥。
+    </div>
+  </div>
+</section>
+
+<!-- ================= 08 config 配置层 ================= -->
+<section id="m-config">
+  <div class="wrap">
+    <div class="reveal">
+      <div class="sec-kicker">Chapter 08 · Module config/</div>
+      <h2>配置层：阈值参数 · preserve 模式</h2>
+      <p class="lead">一句话定位：<strong>旋钮面板</strong>——所有阈值与参数集中配置，设计为 <strong>preserve 模式</strong>：技能更新时保留用户覆盖值，只补新的默认值。</p>
+    </div>
+
+    <div class="callout reveal">
+      <div class="ct">接口契约</div>
+      <div class="contract">
+        <div class="crow"><span class="ck in">IN</span><span class="cv">参数名</span></div>
+        <div class="crow"><span class="ck out">OUT</span><span class="cv">阈值档位 / 参数取值</span></div>
+        <div class="crow"><span class="ck dep">DEP</span><span class="cv">—（preserve，用户可覆盖；被计算引擎只读）</span></div>
+      </div>
+    </div>
+
+    <h3 class="reveal">输出 Schema · config/thresholds.yaml</h3>
+    <div class="codeblock reveal">
+      <div class="clabel"><span>三档阈值（示意；框架 &gt; 数值）</span></div>
+      <button class="copy" onclick="copyCode(this)">COPY</button>
+<pre>credit_spread_aaa_3y:
+  tight:  <span class="st">20</span>     <span class="cm"># bp 以下：偏贵</span>
+  neutral: <span class="st">[20, 55]</span> <span class="cm"># 中性区间</span>
+  loose:  <span class="st">55</span>     <span class="cm"># bp 以上：便宜</span>
+  note: <span class="st">"资产荒年份整体下调 5~10bp，用历史分位数回验校准"</span></pre>
+    </div>
+
+    <h3 class="reveal">独立使用 · 最小示例</h3>
+    <div class="codeblock reveal">
+      <div class="clabel"><span>覆盖阈值后再跑计算</span></div>
+      <button class="copy" onclick="copyCode(this)">COPY</button>
+<pre><span class="cm"># 用户把自己的阈值写进 config/，不动任何代码</span>
+<span class="kw">from</span> config <span class="kw">import</span> load
+cfg = <span class="fn">load</span>(<span class="st">"config/thresholds.yaml"</span>)
+<span class="fn">print</span>(cfg.scaled(spread=18))   <span class="cm"># → tight（18 &lt; 20）</span></pre>
+    </div>
+
+    <div class="callout tip reveal">
+      <div class="ct">替换策略 + 更新纪律</div>
+      config 是用户唯一被点名「可以改」的地方。技能更新只补默认档位（preserve），不覆盖用户值。阈值永不硬编码进脚本或知识层，保证「改旋钮、不改机器」。
+    </div>
+  </div>
+</section>
+
+<!-- ================= 09 集成模式 ================= -->
+<section id="integration">
+  <div class="wrap">
+    <div class="reveal">
+      <div class="sec-kicker">Chapter 09 · Integration Patterns</div>
+      <h2>集成模式：四种接入深度</h2>
+      <p class="lead">不必把 Skill 装成全局可用的整体。按场景选择接入深度——从「全流程」「只取一个模块」到「数据源替换」「输出形态切换」。</p>
+    </div>
+
+    <div class="tabs reveal">
+      <div class="tabbar">
+        <button class="active" onclick="showTab(event,'tab-full')">① 全流程</button>
+        <button onclick="showTab(event,'tab-single')">② 只取一个模块</button>
+        <button onclick="showTab(event,'tab-source')">③ 数据源替换</button>
+        <button onclick="showTab(event,'tab-output')">④ 输出形态切换</button>
+      </div>
+
+      <div class="tabpanel active" id="tab-full">
+        <h4>适用：周报组装、策略专题、例行看板</h4>
+        <p>走完整五层管线：SKILL.md 路由 → 契约取数 → 知识+配置判读 → 计算引擎 → 模板输出。一次成型即可交付。</p>
+        <div class="codeblock">
+          <div class="clabel"><span>全流程 Prompt</span></div>
+          <button class="copy" onclick="copyCode(this)">COPY</button>
+<pre><span class="st">"按 Skill 2.0 中间件跑一遍信用利差周报：
+ 取数 → 计算 → 用 knowledge 解读 → 输出 HTML 看板 + 文字点评。"</span></pre>
+        </div>
+        <p><strong>涉及层</strong>：L0–L4 全部 · <strong>产物</strong>：HTML + PNG + MD 全套</p>
+      </div>
+
+      <div class="tabpanel" id="tab-single">
+        <h4>适用：别的 skill 只要一段知识 / 一份数据 / 一个模板</h4>
+        <p><strong>「只取一个模块」是 Skill 2.0 的核心用法</strong>。例如买方只需要卖方沉淀的「评分卡框架」，拷 knowledge 一个文件即可，不触碰取数与计算。</p>
+        <div class="codeblock">
+          <div class="clabel"><span>只取一个模块：仅查知识</span></div>
+          <button class="copy" onclick="copyCode(this)">COPY</button>
+<pre><span class="cm"># 只取 knowledge/framework.md（评分卡框架），零依赖</span>
+grep <span class="st">"评分卡"</span> knowledge/framework.md</pre>
+        </div>
+        <p><strong>涉及层</strong>：单层 · <strong>产物</strong>：规则 / 数据 / 模板文件</p>
+      </div>
+
+      <div class="tabpanel" id="tab-source">
+        <h4>适用：换数据源复跑（中债登 ⇄ iFinD ⇄ AKShare ⇄ 自有底稿）</h4>
+        <p>只改契约的 <code>source_map</code> 与取数引擎配置，知识、计算、模板全部复用——<strong>数据源契约化切换</strong>。</p>
+        <div class="codeblock">
+          <div class="clabel"><span>换源示例</span></div>
+          <button class="copy" onclick="copyCode(this)">COPY</button>
+<pre><span class="kw">from</span> scripts.fetch <span class="kw">import</span> Fetcher
+f1 = Fetcher(source=<span class="st">"ifind"</span>)              <span class="cm"># 原源</span>
+f2 = Fetcher(source=<span class="st">"chinabond"</span>)         <span class="cm"># 换源：同一个 Fetcher 接口</span>
+df = f2.fetch(<span class="st">["credit_ytm_aaa_3y"]</span>, ...)</pre>
+        </div>
+        <p><strong>涉及层</strong>：L0–L1 + data_contract · <strong>产物</strong>：同一套下游产物</p>
+      </div>
+
+      <div class="tabpanel" id="tab-output">
+        <h4>适用：同一数据，换输出形态交付</h4>
+        <p>数据与计算复用，只换 <code>templates/</code>：同一天的利差数据，可同时出「周报表格」「HTML 看板」「PNG 图」「文字点评」。</p>
+        <div class="codeblock">
+          <div class="clabel"><span>形态切换示例</span></div>
+          <button class="copy" onclick="copyCode(this)">COPY</button>
+<pre><span class="kw">from</span> templates.render <span class="kw">import</span> render
+render(data, <span class="st">"templates/weekly_table.html"</span>,  <span class="st">"out/w_table.html"</span>)
+render(data, <span class="st">"templates/dashboard.html"</span>,   <span class="st">"out/w_dash.html"</span>)
+render(data, <span class="st">"templates/commentary.md"</span>,   <span class="st">"out/w_cmt.md"</span>)</pre>
+        </div>
+        <p><strong>涉及层</strong>：L4 · <strong>产物</strong>：多形态交付物</p>
+      </div>
+    </div>
+
+    <h3 class="reveal">集成深度对比</h3>
+    <table class="reveal">
+      <thead><tr><th>模式</th><th>涉及层 / 模块</th><th>运行时依赖</th><th>凭证需求</th><th>典型产物</th></tr></thead>
+      <tbody>
+        <tr><td>① 全流程</td><td>L0–L4 全部</td><td>requests + pandas + matplotlib（+ 模板运行时）</td><td>按数据源配置</td><td>HTML + PNG + MD 全套</td></tr>
+        <tr><td>② 只取一个模块</td><td>单模块（如 knowledge/）</td><td>无</td><td>无</td><td>规则 / 数据 / 模板</td></tr>
+        <tr><td>③ 数据源替换</td><td>L0–L1 + data_contract</td><td>requests / 对应源 SDK</td><td>新源凭证（config 注入）</td><td>同一套下游产物</td></tr>
+        <tr><td>④ 输出形态切换</td><td>L4 templates</td><td>minimal（渲染器）</td><td>无</td><td>多形态交付物</td></tr>
+      </tbody>
+    </table>
+
+    <div class="callout tip reveal">
+      <div class="ct">选择建议</div>
+      不确定时从 <strong>② 只取一个模块</strong> 开始——先拿走最想要的知识/数据/模板，跑通后按需向两侧扩展。Skill 2.0 不给集成者设门槛：<strong>Skill 不必全局可用</strong>。
+    </div>
+  </div>
+</section>
+
+<!-- ================= 10 知识层写作原则 ================= -->
+<section id="principles">
+  <div class="wrap">
+    <div class="reveal">
+      <div class="sec-kicker">Chapter 10 · Knowledge Writing Principles</div>
+      <h2>知识层写作原则：框架 &gt; 数值，鼓励回验</h2>
+      <p class="lead">知识层最容易写错的地方是<strong>把一堆「拍脑袋的阈值」写成金科玉律</strong>。正确的写法是提供<strong>可复用的判断框架</strong>（维度划分 + 方向 + 结构），并强烈要求用<strong>市场回验</strong>驱动阈值更新。</p>
+    </div>
+
+    <div class="callout tip reveal">
+      <div class="ct">核心立场</div>
+      下表提供的是一套<strong>可复用的判断框架</strong>，而非固定知识。推荐做法：用历史序列做<strong>市场回验</strong>，用数据驱动替代经验拍脑袋。config 设计为 preserve（用户可覆盖），knowledge 允许任何人改写为自己的版本。
+    </div>
+
+    <h3 class="reveal">写作四问（写每个知识条目前自检）</h3>
+    <table class="reveal">
+      <thead><tr><th>#</th><th>问题</th><th>正例 / 反例</th></tr></thead>
+      <tbody>
+        <tr><td>1</td><td>给框架还是给数值？</td><td>✅ 提供维度划分与判断方向；❌ 只复制一串「经验阈值」</td></tr>
+        <tr><td>2</td><td>数值能被回验吗？</td><td>✅ 标注取样区间与口径；❌ 无来源、无区间的孤立数字</td></tr>
+        <tr><td>3</td><td>事件案例有观察窗口吗？</td><td>✅ 「永煤/化债前后中枢漂移 X bp」；❌ 无上下文的一句话结论</td></tr>
+        <tr><td>4</td><td>更新机制说清了吗？</td><td>✅ 给出回验流程 + config preserve 说明；❌ 宣称阈值「永远不变」</td></tr>
+      </tbody>
+    </table>
+
+    <h3 class="reveal">回验方法论（潜在用法）</h3>
+    <div class="chain reveal">
+      <div class="cnode"><div class="cp">Step 1</div><div class="cn">取数</div><div class="cd">3–5 年日度历史序列（取数引擎按月拼接或读快照）</div></div>
+      <div class="carrow">→</div>
+      <div class="cnode"><div class="cp">Step 2</div><div class="cn">分位数</div><div class="cd">计算历史分位数分布（10/25/50/75/90）</div></div>
+      <div class="carrow">→</div>
+      <div class="cnode"><div class="cp">Step 3</div><div class="cn">标注事件</div><div class="cd">标注信用事件窗口（违约/化债/异常波动）</div></div>
+      <div class="carrow">→</div>
+      <div class="cnode"><div class="cp">Step 4</div><div class="cn">比较中枢漂移</div><div class="cd">事件前后中枢对比，量化漂移幅度</div></div>
+      <div class="carrow">→</div>
+      <div class="cnode"><div class="cp">Step 5</div><div class="cn">更新阈值</div><div class="cd">把漂移写回 config/，覆盖旧档位</div></div>
+    </div>
+
+    <details class="reveal">
+      <summary>一个完整回验实例（示意）</summary>
+      <div class="dbody">
+        <p><strong>指标</strong>：信用利差 AAA 3Y（bp）。<strong>取数</strong>：2022 年以来日度序列。<strong>分位数</strong>：20% 分位 18bp / 80% 分位 58bp。<strong>事件标注</strong>：2024 资产荒区间（中枢 25bp）、2025 二季度波动区间（中枢 48bp）。<strong>漂移</strong>：中枢下移约 10bp。<strong>更新</strong>：config 中 tight 由 20 → 16、neutral 上限 55 → 50，写入「校准记录」备注。</p>
+      </div>
+    </details>
+  </div>
+</section>
+
+<!-- ================= 11 潜在应用 ================= -->
+<section id="applications">
+  <div class="wrap">
+    <div class="reveal">
+      <div class="sec-kicker">Chapter 11 · Potential Applications</div>
+      <h2>潜在应用：从中间件到研究产出</h2>
+      <p class="lead">Skill 2.0 模块化中间件本身不是终点——六类模块 × 五层 × 数据源契约组合起来，可以支撑三类高阶应用（已由 BondClaw 固收体系 13 个主题数据库、约 500 个分析逻辑验证）。</p>
+    </div>
+
+    <div class="modgrid reveal" style="grid-template-columns:repeat(3,1fr)">
+      <div class="modcard">
+        <span class="mlayer" style="background:var(--c-teal)">应用 A</span>
+        <div class="mname">市场复盘</div>
+        <div class="mdesc">用历史序列还原「当时市场在交易什么」</div>
+        <div class="contract">
+          <div class="crow"><span class="ck in">IN</span><span class="cv">取数引擎 + knowledge + config 阈值</span></div>
+          <div class="crow"><span class="ck out">OUT</span><span class="cv">周度/月度/年度复盘 + 事件时间线</span></div>
+        </div>
+        <ul style="font-size:13px;color:var(--c-muted);margin-top:12px;padding-left:16px;line-height:2">
+          <li>周度：各视角环比 + 驱动归因</li>
+          <li>月度：中枢漂移 + 分位变迁 + 行业排名</li>
+          <li>事件复盘：前后各视角信号传导时间线</li>
+        </ul>
+      </div>
+      <div class="modcard">
+        <span class="mlayer" style="background:var(--c-gold-deep)">应用 B</span>
+        <div class="mname">规律挖掘</div>
+        <div class="mdesc">从长序列发现可重复的统计规律</div>
+        <div class="contract">
+          <div class="crow"><span class="ck in">IN</span><span class="cv">3–5 年序列 + 事件标注（knowledge/cases）</span></div>
+          <div class="crow"><span class="ck out">OUT</span><span class="cv">季节性图谱 / 条件概率 / 领先滞后</span></div>
+        </div>
+        <ul style="font-size:13px;color:var(--c-muted);margin-top:12px;padding-left:16px;line-height:2">
+          <li>季节性：季末理财赎回 → 利差走阔</li>
+          <li>条件概率：事件后 N 日内走阔概率</li>
+          <li>领先滞后：舆情/事件领先定价 X 月</li>
+        </ul>
+      </div>
+      <div class="modcard">
+        <span class="mlayer" style="background:var(--c-primary)">应用 C</span>
+        <div class="mname">策略探索与回测</div>
+        <div class="mdesc">把阈值框架转成可回测的交易信号</div>
+        <div class="contract">
+          <div class="crow"><span class="ck in">IN</span><span class="cv">阈值框架 + 评分卡 + 历史序列</span></div>
+          <div class="crow"><span class="ck out">OUT</span><span class="cv">信号序列 / 回测收益 / 参数敏感性</span></div>
+        </div>
+        <ul style="font-size:13px;color:var(--c-muted);margin-top:12px;padding-left:16px;line-height:2">
+          <li>分位数策略：&gt;80% 分位买入 / &lt;20% 卖出</li>
+          <li>评分卡择时：得分 → 久期/评级建议</li>
+          <li>参数搜索：阈值档位 + 持有期 N 网格</li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="callout tip reveal">
+      <div class="ct">从信号到 Alpha 的路径</div>
+      中间件提供<strong>原始信号</strong>（指标、分位、评分）；规律挖掘把信号转成<strong>条件概率</strong>；回测把条件概率转成<strong>可执行规则</strong>并验证经济显著性——三层递进。<strong>卖方积累基础组件，买方组装策略</strong>，分工由此展开。
+    </div>
+  </div>
+</section>
+
+<!-- ================= 12 获取 Skill ================= -->
+<section id="get-skill">
+  <div class="wrap">
+    <div class="reveal">
+      <div class="sec-kicker">Chapter 12 · Get the Skill</div>
+      <h2>获取 Skill：一句 Prompt 安装</h2>
+      <p class="lead">在任意 AI Agent 对话框中输入以下内容，Agent 会自动完成下载、安装与依赖配置。</p>
+    </div>
+
+    <div class="codeblock reveal">
+      <div class="clabel"><span>安装 Prompt · 写法一</span></div>
+      <button class="copy" onclick="copyCode(this)">COPY</button>
+<pre><span class="st">"请访问 https://ai.researches.cn/api/skill-installer
+安装 Skill 2.0 模块化中间件 skill"</span></pre>
+    </div>
+    <div class="codeblock reveal">
+      <div class="clabel"><span>安装 Prompt · 写法二（按需配置）</span></div>
+      <button class="copy" onclick="copyCode(this)">COPY</button>
+<pre><span class="st">"请访问 https://ai.researches.cn/api/skill-installer
+安装 Skill 2.0 模块化中间件 skill，按你的数据源配置信用卡 证"</span></pre>
+    </div>
+
+    <div class="callout tip reveal">
+      <div class="ct">商店直链</div>
+      <a href="https://ai.researches.cn" style="color:var(--c-teal);font-weight:bold">https://ai.researches.cn</a> — 在 Skill 商店搜索「Skill 2.0 模块化中间件」或「skill2.0-middleware」。
+    </div>
+
+    <h3 class="reveal">安装后验证</h3>
+    <div class="codeblock reveal">
+      <div class="clabel"><span>验证 Prompt</span></div>
+      <button class="copy" onclick="copyCode(this)">COPY</button>
+<pre><span class="st">"确认 Skill 2.0 中间件已安装：列出六类模块目录，
+ 并只取 knowledge 里的一个分析框架做 dry-run，不触网验证独立可用。"</span></pre>
+    </div>
+  </div>
+</section>
+
+<!-- ================= 页脚 ================= -->
+<footer class="rpt">
+  <div class="wrap">
+    <span>Skill 2.0 模块化中间件 · Technical Architecture Manual · 作者：叶青</span>
+    <span><a href="https://github.com/timyefi/skill20-arch" id="gh-link-foot">GitHub 开源仓库</a></span>
+    <span>fioutput Report Design System · Navy · 2026-08-21 · v2.0.0</span>
+  </div>
+</footer>
+
+<script>
+/* ---------- 阅读进度条 ---------- */
+window.addEventListener('scroll', function(){
+  var h = document.documentElement;
+  var pct = (h.scrollTop / (h.scrollHeight - h.clientHeight)) * 100;
+  document.getElementById('progress').style.width = pct + '%';
+});
+
+/* ---------- Scrollspy ---------- */
+(function(){
+  var links = document.querySelectorAll('nav.toc a');
+  var map = {};
+  links.forEach(function(a){ map[a.getAttribute('href').slice(1)] = a; });
+  var obs = new IntersectionObserver(function(entries){
+    entries.forEach(function(e){
+      if(e.isIntersecting && map[e.target.id]){
+        links.forEach(function(a){ a.classList.remove('active'); });
+        map[e.target.id].classList.add('active');
+      }
+    });
+  }, {rootMargin:'-20% 0px -70% 0px'});
+  document.querySelectorAll('section[id]').forEach(function(s){ obs.observe(s); });
+})();
+
+/* ---------- 滚动显现 ---------- */
+(function(){
+  var obs = new IntersectionObserver(function(entries){
+    entries.forEach(function(e){ if(e.isIntersecting){ e.target.classList.add('visible'); obs.unobserve(e.target);} });
+  }, {threshold:0.08});
+  document.querySelectorAll('.reveal').forEach(function(el){ obs.observe(el); });
+})();
+
+/* ---------- 数字计数动画 ---------- */
+(function(){
+  function animate(el){
+    var target = parseInt(el.getAttribute('data-target'),10);
+    var dur = 1400, t0 = null;
+    function step(ts){
+      if(!t0) t0 = ts;
+      var p = Math.min((ts - t0)/dur, 1);
+      var eased = 1 - Math.pow(1-p, 3);
+      el.textContent = Math.round(target * eased);
+      if(p < 1) requestAnimationFrame(step);
+    }
+    requestAnimationFrame(step);
+  }
+  var obs = new IntersectionObserver(function(entries){
+    entries.forEach(function(e){ if(e.isIntersecting){ animate(e.target); obs.unobserve(e.target);} });
+  }, {threshold:0.5});
+  document.querySelectorAll('.cnt').forEach(function(el){ obs.observe(el); });
+})();
+
+/* ---------- 代码复制 ---------- */
+function copyCode(btn){
+  var pre = btn.parentElement.querySelector('pre');
+  var txt = pre.innerText;
+  navigator.clipboard.writeText(txt).then(function(){
+    btn.textContent = 'COPIED'; btn.classList.add('done');
+    setTimeout(function(){ btn.textContent = 'COPY'; btn.classList.remove('done'); }, 1600);
+  });
+}
+
+/* ---------- Tab 切换 ---------- */
+function showTab(ev, id){
+  var tabs = ev.target.closest('.tabs');
+  tabs.querySelectorAll('.tabbar button').forEach(function(b){ b.classList.remove('active'); });
+  tabs.querySelectorAll('.tabpanel').forEach(function(p){ p.classList.remove('active'); });
+  ev.target.classList.add('active');
+  document.getElementById(id).classList.add('active');
+}
+
+/* ---------- ECharts 模块依赖 DAG ---------- */
+(function(){
+  var dom = document.getElementById('dag');
+  if(!dom || typeof echarts === 'undefined') return;
+  var chart = echarts.init(dom);
+
+  var L = {L0:'#4A7A8C', L1:'#12707E', L2:'#C8A45A', L3:'#0E4D64', L4:'#051C2C'};
+  function n(name, x, y, layer, size){
+    return {name:name, x:x, y:y, symbolSize:size||46,
+      itemStyle:{color:L[layer], borderColor:'#fff', borderWidth:1},
+      label:{show:true, position:'right', color:'#16242E', fontSize:11, fontFamily:'Consolas'}};
+  }
+  var nodes = [
+    /* L0 数据源 (y=560) */
+    n('中债登估值', 60, 560, 'L0', 50), n('iFinD EDB', 270, 560, 'L0', 46),
+    n('DM Quant', 460, 560, 'L0', 46), n('AKShare', 650, 560, 'L0', 44), n('Wind MCP', 830, 560, 'L0', 42),
+    /* L1 取数引擎 (y=430) */
+    n('scripts/fetch 取数引擎', 300, 430, 'L1', 58), n('data_contract 字段映射', 700, 430, 'L2', 54),
+    /* L2 知识层 (y=306) */
+    n('knowledge 公式/阈值', 250, 306, 'L2', 52), n('knowledge/cases 案例', 540, 306, 'L2', 44),
+    n('config 阈值参数', 800, 306, 'L2', 46),
+    /* L3 计算引擎 (y=175) */
+    n('scripts/compute 计算引擎', 300, 175, 'L3', 58), n('回验引擎', 620, 175, 'L3', 44),
+    /* L4 输出模板 (y=55) */
+    n('templates 图表模板', 180, 55, 'L4', 50), n('templates 看板模板', 460, 55, 'L4', 50),
+    n('templates 文字模板', 740, 55, 'L4', 50)
+  ];
+  function e(s,t){ return {source:s, target:t, lineStyle:{color:'#9FB6C4', width:1.4, curveness:0.08}}; }
+  var links = [
+    e('中债登估值','scripts/fetch 取数引擎'), e('iFinD EDB','scripts/fetch 取数引擎'),
+    e('DM Quant','scripts/fetch 取数引擎'), e('AKShare','scripts/fetch 取数引擎'), e('Wind MCP','scripts/fetch 取数引擎'),
+    e('data_contract 字段映射','scripts/fetch 取数引擎'),
+    e('data_contract 字段映射','scripts/compute 计算引擎'),
+    e('knowledge 公式/阈值','scripts/compute 计算引擎'), e('config 阈值参数','scripts/compute 计算引擎'),
+    e('scripts/fetch 取数引擎','scripts/compute 计算引擎'),
+    e('scripts/compute 计算引擎','回验引擎'), e('knowledge/cases 案例','回验引擎'),
+    e('scripts/compute 计算引擎','templates 图表模板'), e('scripts/compute 计算引擎','templates 看板模板'),
+    e('scripts/compute 计算引擎','templates 文字模板'),
+    e('回验引擎','config 阈值参数'),
+    e('templates 图表模板','templates 看板模板')
+  ];
+  chart.setOption({
+    tooltip:{trigger:'item', backgroundColor:'#051C2C', borderColor:'#C8A45A', textStyle:{color:'#fff', fontFamily:'Georgia'}},
+    legend:{data:['L0 数据源','L1 取数层','L2 知识/契约','L3 计算层','L4 输出层'],
+      bottom:0, textStyle:{color:'#33424D', fontFamily:'Georgia', fontSize:12},
+      itemWidth:14, itemHeight:14},
+    series:[{
+      type:'graph', layout:'none', coordinateSystem:null,
+      data:nodes.map(function(nd){
+        var layer = nd.itemStyle.color===L.L0?'L0 数据源':nd.itemStyle.color===L.L1?'L1 取数层':
+                    nd.itemStyle.color===L.L2?'L2 知识/契约':nd.itemStyle.color===L.L3?'L3 计算层':'L4 输出层';
+        nd.category = ['L0 数据源','L1 取数层','L2 知识/契约','L3 计算层','L4 输出层'].indexOf(layer);
+        return nd;
+      }),
+      links:links,
+      categories:[{name:'L0 数据源'},{name:'L1 取数层'},{name:'L2 知识/契约'},{name:'L3 计算层'},{name:'L4 输出层'}],
+      roam:true, draggable:true,
+      edgeSymbol:['none','arrow'], edgeSymbolSize:[0,8],
+      emphasis:{focus:'adjacency', lineStyle:{width:3, color:'#C8A45A'}},
+      lineStyle:{opacity:0.7}
+    }]
+  });
+  window.addEventListener('resize', function(){ chart.resize(); });
+})();
+
+/* ---------- 表格滚动容器（移动端自适应） ---------- */
+document.querySelectorAll('table').forEach(t => {
+  if (t.parentElement.classList.contains('table-scroll')) return;
+  const w = document.createElement('div');
+  w.className = 'table-scroll';
+  t.parentNode.insertBefore(w, t);
+  w.appendChild(t);
+});
+</script>
+</body>
+</html>
