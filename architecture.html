@@ -4,6 +4,17 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Skill 2.0 模块化中间件 · 技术架构手册</title>
+<meta name="description" content="把整体技能拆成六类独立模块 SKILL.md/knowledge/templates/data_contract/scripts/config，五层解耦架构，每层可独立使用。含接口契约、独立调用示例、4种集成模式、知识层写作原则与潜在应用。作者：叶青">
+<meta property="og:title" content="Skill 2.0 模块化中间件技术架构手册 | 投研AI家园">
+<meta property="og:description" content="把整体技能拆成六类独立模块 SKILL.md/knowledge/templates/data_contract/scripts/config，五层解耦架构，每层可独立使用。含接口契约、独立调用示例、4种集成模式、知识层写作原则与潜在应用。作者：叶青">
+<meta property="og:image" content="https://ai.researches.cn/pages/tutorial-skill20-architecture/cover.png">
+<meta property="og:url" content="https://ai.researches.cn/pages/tutorial-skill20-architecture/">
+<meta property="og:type" content="article">
+<meta property="og:site_name" content="投研AI家园">
+<meta itemprop="name" content="Skill 2.0 模块化中间件技术架构手册 | 投研AI家园">
+<meta itemprop="description" content="把整体技能拆成六类独立模块 SKILL.md/knowledge/templates/data_contract/scripts/config，五层解耦架构，每层可独立使用。含接口契约、独立调用示例、4种集成模式、知识层写作原则与潜在应用。作者：叶青">
+<meta itemprop="image" content="https://ai.researches.cn/pages/tutorial-skill20-architecture/cover.png">
+
 <meta name="description" content="Skill 2.0 模块化中间件技术架构手册：把整体技能拆成 SKILL.md / knowledge / templates / data_contract / scripts / config 六类独立模块，L0数据源→L1取数→L2知识→L3计算→L4输出五层解耦，每层可独立使用。含接口契约、独立调用示例、4种集成模式、知识层写作原则与潜在应用。作者：叶青">
 <meta property="og:title" content="Skill 2.0 模块化中间件 技术架构手册 | 投研AI家园">
 <meta property="og:description" content="Skill 2.0 模块化中间件技术架构手册：六类独立模块×五层解耦架构，接口契约、集成模式与潜在应用。作者：叶青">
@@ -332,6 +343,7 @@ footer.rpt a:hover{border-bottom-color:var(--c-gold)}
 <nav class="toc">
   <div class="wrap">
     <span class="brand">SKILL2.0 · ARCH</span>
+    <a href="#increments">00 增量</a>
     <a href="#overview" class="active">01 总览</a>
     <a href="#registry">02 注册表</a>
     <a href="#m-skillmd">03 激活</a>
@@ -354,12 +366,13 @@ footer.rpt a:hover{border-bottom-color:var(--c-gold)}
     <h1>Skill 2.0 模块化中间件
       <span class="thin">从「一个整体技能」到「一台可拆装中间件」· 技术架构手册</span>
     </h1>
-    <p class="doc-sub">面向集成者与二次开发者：本手册把「Skill 2.0 模块化中间件」范式拆解为六类独立模块（SKILL.md / knowledge / templates / data_contract / scripts / config），并按「数据源 → 取数 → 知识 → 计算 → 输出」五层组织。每个模块独立给出接口契约（IN / OUT / DEP）、最小可运行示例与替换策略——你可以只取一个模块、只查一段知识、或只换一个数据源，而无需吞下整个技能。</p>
+    <p class="doc-sub">从 Skill 1.0 到 Skill 2.0 的<strong>模块化中间件规格</strong>——六个增量维度的工程化进化。面向集成者与二次开发者，本手册把 Skill 2.0 拆解为六类独立模块（SKILL.md / knowledge / templates / data_contract / scripts / config），在 v1《Skill 中间件架构》的四层搭积木主张之上做<strong>增量演进而非重复</strong>：每个模块给出接口契约（IN / OUT / DEP）、最小可运行示例与替换策略——你只取一个模块、只查一段知识、或只换一个数据源，而无需吞下整个技能。</p>
     <div class="doc-meta">
       <span><b>作者</b>叶青</span>
-      <span><b>版本</b>v2.0.0</span>
+      <span><b>版本</b>v2.1.0</span>
       <span><b>分层</b>L0 – L4 · 5 层</span>
       <span><b>模块</b>6 类 · 12 卡</span>
+      <span><b>增量</b>D1 – D6 · 六维</span>
       <span><b>开源仓库</b><a href="https://github.com/timyefi/skill20-arch" id="gh-link-top">GitHub →</a></span>
       <span><b>落地背景</b>BondClaw 固收体系 · 13 库 · 500+ 逻辑</span>
     </div>
@@ -378,13 +391,73 @@ footer.rpt a:hover{border-bottom-color:var(--c-gold)}
   </div>
 </div>
 
+<!-- ================= 00 Skill 1.0 → Skill 2.0 六维增量 ================= -->
+<section id="increments">
+  <div class="wrap">
+    <div class="reveal">
+      <div class="sec-kicker">Chapter 00 · Increments D1–D6</div>
+      <h2>Skill 1.0 → Skill 2.0：六维增量</h2>
+      <p class="lead">v1《Skill 中间件架构总览》讲的是<strong>从无到有搭框架</strong>——把研究链条拆成四层、每层 Skill 化（数据 → 逻辑 → 回测 → 输出；四层搭积木 / 数据源矩阵 / 四条设计原则详见 v1 架构页，此处不复述）。本手册讲的是框架放大之后的问题：<strong>13 个数据库、约 500 个分析逻辑、一本本手册在生产运行</strong>，Skill 本身的工程形态如何进化为模块化中间件。六个增量维度定义如下——此后每个模块章节都用它标注该模块的进化位置。</p>
+    </div>
+
+    <table class="reveal">
+      <thead>
+        <tr><th>维度</th><th>Skill 1.0</th><th>Skill 2.0 增量</th><th>实践价值</th></tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><strong>D1 封装单位</strong></td>
+          <td>一个目录一个 <code>SKILL.md</code>，整体交付</td>
+          <td>六类独立模块（<code>SKILL.md</code> / <code>knowledge</code> / <code>templates</code> / <code>data_contract</code> / <code>scripts</code> / <code>config</code>），各自独立交付、独立测试、独立版本化</td>
+          <td>最小可复用单元从「一个数据库」降为「一个视角 / 一个契约 / 一个引擎」；资金面库 34 视角、信用利差 11 视角 × 5 源</td>
+        </tr>
+        <tr>
+          <td><strong>D2 激活与上下文</strong></td>
+          <td>全局注册，激活即全量注入上下文</td>
+          <td>默认不激活，按路径指名加载模块</td>
+          <td>Token 经济学：34 视角的库只取 1 个视角，上下文占用从 100% 降到约 1/30；多 skill 可在同一会话共存</td>
+        </tr>
+        <tr>
+          <td><strong>D3 接口</strong></td>
+          <td>触发条件用自然语言，无从机器校验</td>
+          <td>IN / OUT / DEP YAML 数据契约，可单测、可替换、可集成校验</td>
+          <td>集成成本从「读文档理解」降为「读契约就接」；换实现不扰外部</td>
+        </tr>
+        <tr>
+          <td><strong>D4 知识</strong></td>
+          <td>阈值 / 公式写死在文档与代码，经验随人走</td>
+          <td>knowledge = 公式 + 阈值 + 案例 + <strong>回验基线</strong>；框架 &gt; 数值；市场回验驱动更新（取数 → 分位数 → 标注事件 → 中枢漂移 → 更新阈值）</td>
+          <td>「越用越深」从口号变机制：资金面分位算到 90%+，回验发现上游缺数 3 日，补齐数据回调到 70%</td>
+        </tr>
+        <tr>
+          <td><strong>D5 复用与维护</strong></td>
+          <td>复用 = 整体搬走整套；维护 = 整体换版，版本漂移</td>
+          <td>单模块被多库引用（如资金面分位模块被信用 / 宏观库共用），一处维护多处受益；视角级升级与回退</td>
+          <td>卖方建组件、买方装配成为真实分工</td>
+        </tr>
+        <tr>
+          <td><strong>D6 生产形态</strong></td>
+          <td>交付一份「怎么用」的教学文档</td>
+          <td>持续运行的手册化中间件：介绍手册（做什么 / 怎么用）与架构手册（模块注册表 = 契约清单 / 接口 / 独立调用示例）分家，架构手册本身即 2.0 实例</td>
+          <td>手册拆解本身就是模块化的又一实例；本手册图表 = 真实操作复刻（fioutput Navy，3x DPI）</td>
+        </tr>
+      </tbody>
+    </table>
+
+    <div class="callout tip reveal">
+      <div class="ct">阅读本手册的方式</div>
+      六个维度不是六章正文，而是贯穿各模块章节的<strong>增量主线</strong>：每个模块详解都标注其对应的增量维度与生产证据。v1 讲「是什么」；本手册讲「从哪里来、进化到哪里、在生产里发生过什么」。
+    </div>
+  </div>
+</section>
+
 <!-- ================= 01 系统总览 ================= -->
 <section id="overview">
   <div class="wrap">
     <div class="reveal">
       <div class="sec-kicker">Chapter 01 · System Overview</div>
       <h2>系统总览：从「整体技能」到「模块化中间件」</h2>
-      <p class="lead">Skill 1.0 是<strong>全局可用的整体技能</strong>：一个大的技能包，整体加载、内部黑盒、随写出或随人走。Skill 2.0 把它升级为<strong>模块化中间件</strong>——沿「数据源 → 取数 → 知识 → 计算 → 输出」五层纵向拆开，每一层、每一个模块都有独立接口，<strong>Skill 不必全局可用，清晰拆成一个部分就能为所用</strong>。</p>
+      <p class="lead">Skill 1.0 是<strong>全局可用的整体技能</strong>：一个大的技能包，整体加载、内部黑盒、随写出或随人走。Skill 2.0 把它升级为<strong>模块化中间件</strong>——兼容 v1 的「数据源 → 取数 → 知识 → 计算 → 输出」分层骨架，但把表述压缩为<strong>模块粒度下的独立可替换机制</strong>：每个模块都有独立接口，<strong>Skill 不必全局可用，拆出一个部分就能为所用</strong>。延续 v1 中间件主张，本手册聚焦模块化增量——v1 已详述的四层架构、数据源矩阵与四条设计原则不再复述。</p>
     </div>
 
     <div class="callout tip reveal">
@@ -636,6 +709,11 @@ ls knowledge/cases/   <span class="cm"># 历史案例库（回验素材）</span
     <div class="callout tip reveal">
       <div class="ct">替换策略</div>
       knowledge 是<strong>preserve</strong>文件——同步更新技能时保留用户版本。卖方维护「基础框架库」，买方把自己的立场、阈值、案例写进各自的 knowledge 副本。<code>knowledge/</code> 整个目录删掉，其余四类模块依然能取数与计算（只是失去解读能力）。
+    </div>
+
+    <div class="callout reveal">
+      <div class="ct">增量实践价值 · D4 知识</div>
+      知识层正是 <strong>Skill 2.0 的 D4 增量</strong>所在地：knowledge = 公式 + 阈值 + 案例 + <strong>回验基线</strong>，框架 &gt; 数值，用市场回验驱动更新。生产证据：<strong>资金面分位曾算到 90%+</strong> 触发预警，回验发现上游缺数 3 日，补齐数据后回调到 70%——「越用越深」从口号变成机制；财务分析体系以 <strong>14 Agent × 5 阶段</strong> 驱动，每次分析完成回写 knowledge/cases，知识库随生产持续进化。
     </div>
   </div>
 </section>
@@ -919,6 +997,11 @@ render(data, <span class="st">"templates/commentary.md"</span>,   <span class="s
       <div class="ct">选择建议</div>
       不确定时从 <strong>② 只取一个模块</strong> 开始——先拿走最想要的知识/数据/模板，跑通后按需向两侧扩展。Skill 2.0 不给集成者设门槛：<strong>Skill 不必全局可用</strong>。
     </div>
+
+    <div class="callout reveal">
+      <div class="ct">增量实践价值 · D2 / D5 激活与复用</div>
+      四种接入深度的工程意义，正是 <strong>D2（激活与上下文）</strong>与 <strong>D5（复用与维护）</strong>的直接落地：34 视角的资金面库、11 视角 × 5 源的信用利差库、22 视角的城投库，生产中只取所需视角即可与多 skill 同会话共存；资金面分位模块又被信用 / 宏观库共用——<strong>一处维护、多处受益</strong>，视角级升级与回退，正是 Skill 2.0 与 v1「整体搬走、整体换版」的本质差别。
+    </div>
   </div>
 </section>
 
@@ -1072,7 +1155,7 @@ render(data, <span class="st">"templates/commentary.md"</span>,   <span class="s
   <div class="wrap">
     <span>Skill 2.0 模块化中间件 · Technical Architecture Manual · 作者：叶青</span>
     <span><a href="https://github.com/timyefi/skill20-arch" id="gh-link-foot">GitHub 开源仓库</a></span>
-    <span>fioutput Report Design System · Navy · 2026-08-21 · v2.0.0</span>
+    <span>fioutput Report Design System · Navy · 2026-08-21 · v2.1.0</span>
   </div>
 </footer>
 
