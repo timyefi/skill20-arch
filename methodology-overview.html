@@ -1,0 +1,653 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>从 Skill 1.0 到 Skill 2.0 — 研究能力的工厂化</title>
+<meta property="og:title" content="从 Skill 1.0 到 Skill 2.0 — 研究能力的工厂化">
+<meta property="og:description" content="卖方造零件，买方组装车。不是再拆一层架构，而是让研究能力可以管理、可以拼装。">
+<style>
+/* ============================================================
+   Design: fioutput Navy / McKinsey Flat
+   主色 #051C2C · 点缀 #C8A45A · Georgia/STSong serif · 无圆角
+   ============================================================ */
+:root {
+  --c-primary:        #051C2C;
+  --c-gold:           #C8A45A;
+  --c-gold-dark:      #A9833B;
+  --c-bg:             #FFFFFF;
+  --c-surface:        #F4F6F8;
+  --c-text:           #262626;
+  --c-muted:          #6B6B6B;
+  --c-line:           #DCDCD8;
+  --c-positive:       #2E8B57;
+  --c-negative:       #B03A2E;
+  --c-warn:           #A9833B;
+
+  --font-serif:       Georgia, 'STSong', 'SimSun', serif;
+  --font-mono:        'Consolas', 'Courier New', monospace;
+
+  --fs-hero:          clamp(32px, 4.8vw, 60px);
+  --fs-lead:          clamp(20px, 2.2vw, 30px);
+  --fs-section:       clamp(22px, 2.7vw, 36px);
+  --fs-subhead:       clamp(17px, 1.6vw, 22px);
+  --fs-body:          clamp(15.5px, 1.12vw, 18.5px);
+  --fs-sm:            clamp(13.5px, 1vw, 15.5px);
+  --fs-caption:       clamp(11.5px, 0.85vw, 13px);
+  --fs-stat:          clamp(20px, 2vw, 28px);
+
+  --radius:           0px;
+  --lh:               1.85;
+}
+
+* { margin: 0; padding: 0; box-sizing: border-box; }
+html { scroll-behavior: smooth; }
+img, svg { max-width: 100%; height: auto; display: block; }
+
+body {
+  font-family: var(--font-serif);
+  color: var(--c-text);
+  background: var(--c-bg);
+  line-height: var(--lh);
+  -webkit-font-smoothing: antialiased;
+}
+
+/* ============================================================
+   Header — 封面式开头
+   ============================================================ */
+header {
+  background: var(--c-primary);
+  color: #fff;
+  padding: clamp(48px, 8vw, 110px) clamp(20px, 6vw, 88px);
+  border-bottom: 4px solid var(--c-gold);
+  position: relative;
+  overflow: hidden;
+}
+
+.header-tag {
+  display: inline-block;
+  font-family: var(--font-mono);
+  font-size: var(--fs-caption);
+  letter-spacing: 0.28em;
+  color: var(--c-gold);
+  border: 1px solid rgba(200,164,90,0.55);
+  padding: 5px 16px;
+  margin-bottom: clamp(20px, 3vw, 34px);
+  text-transform: uppercase;
+}
+
+header h1 {
+  font-size: var(--fs-hero);
+  font-weight: 700;
+  line-height: 1.18;
+  letter-spacing: 0.02em;
+}
+
+header h1 .hl-em { color: var(--c-gold); font-weight: 700; }
+
+.hero-sub {
+  margin-top: clamp(16px, 2.4vw, 26px);
+  font-size: var(--fs-lead);
+  line-height: 1.55;
+  color: #fff;
+  max-width: 760px;
+}
+
+.hero-quote {
+  margin-top: clamp(26px, 4vw, 48px);
+  max-width: 760px;
+  padding-left: 18px;
+  border-left: 3px solid var(--c-gold);
+  font-size: var(--fs-body);
+  line-height: 1.9;
+  color: rgba(255,255,255,0.82);
+}
+
+.hero-links {
+  margin-top: clamp(24px, 3.6vw, 42px);
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px 28px;
+}
+
+.hero-link {
+  color: rgba(255,255,255,0.85);
+  text-decoration: none;
+  font-family: var(--font-mono);
+  font-size: var(--fs-caption);
+  letter-spacing: 0.06em;
+  border-bottom: 1px solid rgba(200,164,90,0.6);
+  padding-bottom: 3px;
+  transition: color .2s ease, border-color .2s ease;
+}
+
+.hero-link:hover { color: var(--c-gold); border-color: var(--c-gold); }
+
+/* ============================================================
+   通用 Section
+   ============================================================ */
+.section {
+  max-width: 1080px;
+  margin: 0 auto;
+  padding: clamp(52px, 7vw, 96px) clamp(20px, 6vw, 88px);
+}
+
+.section--tint { background: var(--c-surface); border-top: 1px solid var(--c-line); border-bottom: 1px solid var(--c-line); }
+
+.section-label {
+  font-family: var(--font-mono);
+  font-size: var(--fs-caption);
+  letter-spacing: 0.3em;
+  color: var(--c-gold-dark);
+  text-transform: uppercase;
+  margin-bottom: 10px;
+}
+
+.section-title {
+  font-size: var(--fs-section);
+  font-weight: 700;
+  color: var(--c-primary);
+  line-height: 1.35;
+  padding-bottom: 14px;
+  border-bottom: 1px solid var(--c-line);
+  margin-bottom: clamp(20px, 2.6vw, 30px);
+}
+
+.section-title .n {
+  font-family: var(--font-mono);
+  font-size: 0.55em;
+  color: var(--c-gold-dark);
+  margin-right: 14px;
+  vertical-align: 0.15em;
+}
+
+.lead {
+  font-size: var(--fs-subhead);
+  line-height: 1.8;
+  color: var(--c-primary);
+  margin-bottom: clamp(18px, 2.4vw, 26px);
+  max-width: 860px;
+  font-weight: 400;
+}
+
+.prose {
+  font-size: var(--fs-body);
+  line-height: var(--lh);
+  max-width: 860px;
+}
+
+.prose p { margin-bottom: 1.1em; }
+
+.prose strong { color: var(--c-primary); font-weight: 700; }
+.prose .gold { color: var(--c-gold-dark); font-weight: 700; }
+
+.pull {
+  max-width: 860px;
+  margin: clamp(26px, 3.6vw, 40px) 0;
+  padding: 18px 20px;
+  border-left: 4px solid var(--c-gold);
+  background: var(--c-surface);
+  font-size: var(--fs-subhead);
+  line-height: 1.8;
+  color: var(--c-primary);
+}
+
+/* 图 */
+.fig { margin: clamp(26px, 3.6vw, 44px) 0; }
+.fig img { border: 1px solid var(--c-line); background: #fff; }
+.fig figcaption {
+  font-family: var(--font-mono);
+  font-size: var(--fs-caption);
+  color: var(--c-muted);
+  margin-top: 10px;
+  letter-spacing: 0.02em;
+}
+.fig figcaption b { color: var(--c-gold-dark); }
+
+/* ============================================================
+   生命周期 — 买方三件事
+   ============================================================ */
+.things { display: grid; grid-template-columns: repeat(3, 1fr); gap: 0; border: 1px solid var(--c-line); margin: clamp(26px, 3vw, 36px) 0; }
+
+.thing { padding: clamp(20px, 2.6vw, 32px); border-right: 1px solid var(--c-line); }
+.thing:last-child { border-right: none; }
+.thing-num {
+  font-family: var(--font-mono);
+  font-size: var(--fs-caption);
+  color: var(--c-gold-dark);
+  letter-spacing: 0.2em;
+  margin-bottom: 12px;
+}
+.thing-name { font-size: var(--fs-subhead); color: var(--c-primary); font-weight: 700; margin-bottom: 12px; }
+.thing p { font-size: var(--fs-sm); line-height: 1.9; color: var(--c-text); margin-bottom: 0.9em; }
+.thing b { color: var(--c-primary); }
+
+/* ============================================================
+   能力组合 — 四步
+   ============================================================ */
+.steps { display: grid; grid-template-columns: repeat(4, 1fr); gap: 0; border: 1px solid var(--c-line); margin: clamp(26px, 3vw, 36px) 0; }
+
+.step { padding: clamp(18px, 2.2vw, 28px); border-right: 1px solid var(--c-line); position: relative; }
+.step:last-child { border-right: none; }
+.step::after {
+  content: "→";
+  position: absolute;
+  right: -10px; top: 50%;
+  transform: translateY(-50%);
+  color: var(--c-gold-dark);
+  font-family: var(--font-mono);
+  font-size: var(--fs-body);
+  z-index: 1;
+  background: #fff;
+}
+.step:last-child::after { display: none; }
+.step-num { font-family: var(--font-mono); font-size: var(--fs-caption); color: var(--c-gold-dark); letter-spacing: 0.2em; margin-bottom: 10px; }
+.step-name { font-size: var(--fs-subhead); color: var(--c-primary); font-weight: 700; margin-bottom: 10px; line-height: 1.5; }
+.step p { font-size: var(--fs-sm); line-height: 1.9; color: var(--c-text); }
+
+/* ============================================================
+   真实案例 — 三段卡 + 面板
+   ============================================================ */
+.case-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 0; border: 1px solid var(--c-line); margin: clamp(26px, 3vw, 36px) 0; }
+
+.case-card { border-right: 1px solid var(--c-line); display: flex; flex-direction: column; }
+.case-card:last-child { border-right: none; }
+
+.card-head { padding: 18px 22px 14px; border-bottom: 1px solid var(--c-line); background: var(--c-surface); }
+.card-head .ch-row { display: flex; align-items: baseline; justify-content: space-between; gap: 10px; flex-wrap: wrap; }
+.card-head .ch-name { font-family: var(--font-mono); font-size: var(--fs-caption); color: var(--c-gold-dark); letter-spacing: 0.2em; white-space: nowrap; }
+.badge {
+  font-family: var(--font-mono);
+  font-size: var(--fs-caption);
+  letter-spacing: 0.08em;
+  padding: 3px 12px;
+  border: 1px solid var(--c-positive);
+  color: var(--c-positive);
+  white-space: nowrap;
+}
+.badge--warn { border-color: var(--c-warn); color: var(--c-warn); }
+.badge--plain { border-color: var(--c-muted); color: var(--c-muted); }
+
+.card-date { margin-top: 8px; font-family: var(--font-mono); font-size: var(--fs-caption); color: var(--c-muted); letter-spacing: 0.05em; }
+
+.card-body { padding: 18px 22px 22px; flex: 1; display: flex; flex-direction: column; }
+.card-body .cimg { border: 1px solid var(--c-line); margin-bottom: 16px; }
+.stats { margin-bottom: 16px; }
+.stat { display: flex; justify-content: space-between; align-items: baseline; padding: 7px 0; border-bottom: 1px dashed var(--c-line); }
+.stat:last-child { border-bottom: none; }
+.stat .s-name { font-size: var(--fs-sm); color: var(--c-muted); }
+.stat .s-val { font-family: var(--font-mono); font-size: var(--fs-stat); color: var(--c-primary); font-weight: 700; }
+.stat .s-val.gold { color: var(--c-gold-dark); }
+.stat .s-val.neg { color: var(--c-negative); }
+.stat .s-val.pos { color: var(--c-positive); }
+
+.card-note { font-size: var(--fs-sm); line-height: 1.85; color: var(--c-text); margin-bottom: 16px; }
+.verdict {
+  margin-top: auto;
+  padding: 12px 14px;
+  background: var(--c-surface);
+  border-left: 3px solid var(--c-gold);
+  font-size: var(--fs-sm);
+  line-height: 1.8;
+  color: var(--c-primary);
+}
+.verdict b { color: var(--c-gold-dark); }
+
+/* 面板表 */
+.panel { border: 1px solid var(--c-line); margin: clamp(20px, 2.6vw, 30px) 0; }
+.panel-head { padding: 14px 22px; background: var(--c-primary); color: #fff; display: flex; justify-content: space-between; align-items: baseline; flex-wrap: wrap; gap: 6px; border-bottom: 1px solid var(--c-primary); }
+.panel-head .ph-t { font-family: var(--font-mono); letter-spacing: 0.2em; font-size: var(--fs-caption); color: var(--c-gold); }
+.panel-head .ph-d { font-family: var(--font-mono); font-size: var(--fs-caption); color: rgba(255,255,255,0.7); }
+
+.table-wrap { overflow-x: auto; }
+table.panel-tbl { width: 100%; border-collapse: collapse; font-size: var(--fs-sm); }
+.panel-tbl th {
+  font-family: var(--font-mono);
+  font-weight: 400;
+  letter-spacing: 0.12em;
+  text-align: left;
+  font-size: var(--fs-caption);
+  color: var(--c-muted);
+  padding: 12px 22px;
+  border-bottom: 1px solid var(--c-line);
+  background: var(--c-surface);
+  white-space: nowrap;
+}
+.panel-tbl td { padding: 12px 22px; border-bottom: 1px solid var(--c-line); line-height: 1.75; vertical-align: top; }
+.panel-tbl tr:last-child td { border-bottom: none; }
+.panel-tbl .seg { font-weight: 700; color: var(--c-primary); white-space: nowrap; }
+.panel-tbl .st-seg { font-family: var(--font-mono); white-space: nowrap; }
+.panel-tbl .st-buy { color: var(--c-positive); }
+.panel-tbl .st-sell { color: var(--c-negative); }
+.panel-tbl tr.verdict-row td { background: var(--c-surface); border-top: 2px solid var(--c-gold); font-weight: 700; color: var(--c-primary); }
+
+/* ============================================================
+   Footer
+   ============================================================ */
+footer {
+  background: var(--c-primary);
+  color: rgba(255,255,255,0.55);
+  text-align: center;
+  padding: clamp(40px, 5vw, 64px) 20px;
+  font-size: var(--fs-caption);
+  letter-spacing: 0.05em;
+  line-height: 2.1;
+}
+footer .footer-motto { font-size: var(--fs-subhead); color: #fff; margin-bottom: 14px; }
+footer .footer-motto span { color: var(--c-gold); }
+footer a { color: var(--c-gold); text-decoration: none; border-bottom: 1px solid rgba(200,164,90,0.5); padding-bottom: 1px; }
+footer a:hover { border-color: var(--c-gold); }
+footer .f-rule { width: 46px; height: 2px; background: var(--c-gold); margin: 22px auto; }
+
+/* ============================================================
+   Reveal
+   ============================================================ */
+.reveal { opacity: 0; transform: translateY(22px); transition: opacity .7s ease, transform .7s ease; }
+.reveal.visible { opacity: 1; transform: translateY(0); }
+
+/* ============================================================
+   响应式 ≤ 899px
+   ============================================================ */
+@media (max-width: 899px) {
+  .section { padding: 46px 20px; }
+  header { padding: 56px 20px 48px; }
+  .hero-quote { padding-left: 14px; }
+
+  .things, .case-grid { grid-template-columns: 1fr; }
+  .thing { border-right: none; border-bottom: 1px solid var(--c-line); }
+  .thing:last-child { border-bottom: none; }
+  .case-card { border-right: none; border-bottom: 1px solid var(--c-line); }
+  .case-card:last-child { border-bottom: none; }
+
+  .table-wrap { overflow-x: auto; -webkit-overflow-scrolling: touch; }
+  table.panel-tbl { width: 100% !important; min-width: 0; table-layout: fixed; }
+
+  .steps { grid-template-columns: 1fr 1fr; }
+  .step { border-right: 1px solid var(--c-line); border-bottom: 1px solid var(--c-line); }
+  .step:nth-child(2) { border-right: none; }
+  .step:nth-child(3) { border-bottom: none; }
+  .step:nth-child(4) { border-right: none; border-bottom: none; }
+  .step::after { display: none; }
+
+  .table-wrap { -webkit-overflow-scrolling: touch; }
+  .panel-tbl td, .panel-tbl th { padding: 10px 14px; }
+}
+
+@media (max-width: 520px) {
+  .steps { grid-template-columns: 1fr; }
+  .step { border-right: none; }
+  .step:nth-child(3) { border-bottom: 1px solid var(--c-line); }
+  .header-tag { letter-spacing: 0.18em; }
+}
+</style>
+</head>
+<body>
+
+<!-- ════════════════ HERO ════════════════ -->
+<header>
+  <div class="header-tag">Methodology · Skill 2.0 · 2026</div>
+  <h1>从 Skill 1.0 到 Skill 2.0<br><span class="hl-em">研究能力的工厂化</span></h1>
+  <p class="hero-sub">卖方造零件，买方组装车。</p>
+  <div class="hero-quote">不是再拆一层架构，而是让研究能力可以管理、可以拼装。</div>
+  <div class="hero-links">
+    <a class="hero-link" href="https://github.com/timyefi/skill20-arch" target="_blank">&#9670; GitHub · skill20-arch</a>
+    <a class="hero-link" href="#" onclick="return false;">&#9670; 获取 Skill · 见 skill 商店</a>
+  </div>
+</header>
+
+<main>
+
+<!-- ════════════════ 核心思想 ════════════════ -->
+<section class="section" id="core">
+  <div class="section-label reveal">Core Idea</div>
+  <h2 class="section-title reveal"><span class="n">01</span>核心思想：卖方造零件，买方组装车</h2>
+
+  <div class="prose reveal">
+    <p>研究的价值在两处：知识的沉淀，和判断的实现。前者是<strong>零件</strong>，后者是<strong>组装</strong>。过去这两件事常常捆在一件东西里——一个框架、一个数据库，把取数、口径、判断和输出整个交给你。它好用，但你想象局部，就得先懂它的内部；想改一处，往往要动全部。</p>
+    <p>Skill 2.0 把这两件事拆开。做研究基础组件的人，负责把一个个研究能力做成<strong>标准零件</strong>：一个主题一个数据库，覆盖这个主题该有的全部视角。到今天，这套零件库里已经沉淀了 <span class="gold">13 个主题数据库、约 500 个分析逻辑</span>——资金面、机构行为、信用利差、城投跟踪……每一项都是独立、可替换、可复用的能力。</p>
+    <p>买方研究者不需要碰轮子。你手里是一盒零件：资金面取一段，机构行为取一段，信用利差取一段，按你自己的投资想法拼装。想拼什么车，你来定；零件从哪来、连接件怎么紧固，不用你操心。<strong>一句话：卖方造零件，买方组装车。</strong></p>
+  </div>
+
+  <figure class="fig reveal">
+    <img src="report/images/fig_core.png" alt="核心思想：卖方造零件，买方组装车">
+    <figcaption><b>图 1</b> · 核心思想：卖方沉淀基础组件，买方按想法组装——分工，而非替代（示意）</figcaption>
+  </figure>
+</section>
+
+<!-- ════════════════ 从一件东西到一盒零件 ════════════════ -->
+<section class="section section--tint" id="box">
+  <div class="section-label reveal">The Shift</div>
+  <h2 class="section-title reveal"><span class="n">02</span>从一件东西，到一盒零件</h2>
+
+  <div class="prose reveal">
+    <p>Skill 1.0 是一件东西。一个 skill 把整套能力装在一起，整体交给你用。优点是上手快，缺点是封闭：想换一个口径、换一个视角，得打开整件东西，读得懂里面的实现，才能动手改。改的人，通常得会技术。</p>
+    <p>Skill 2.0 是一盒零件，外加一张拼装台。研究能力被拆成一个个小零件，每个零件做好、标好、摆上架。买方研究者<strong>不用造轮子</strong>，按自己的想法把零件拼起来；不满意，说一句大白话，AI 帮着改对应的部分。启动它的人，从"学技术"变成"想清楚要什么"。</p>
+    <p>这个差别不在界面，而在治理：整体交付的是<strong>"会用"</strong>这个结果，盒装交付的是<strong>"可管理、可拼装"</strong>这个能力。研究能力不再是一座座孤岛，而是统一管理、随取随拼的资产。</p>
+  </div>
+
+  <figure class="fig reveal">
+    <img src="report/images/fig_v.png" alt="从 Skill 1.0 一件东西到 Skill 2.0 一盒零件">
+    <figcaption><b>图 2</b> · 从整体交付到零件化交付：一件东西给你用，一盒零件随你拼（示意）</figcaption>
+  </figure>
+</section>
+
+<!-- ════════════════ 生命周期 ════════════════ -->
+<section class="section" id="life">
+  <div class="section-label reveal">Lifecycle</div>
+  <h2 class="section-title reveal"><span class="n">03</span>生命周期：买方只要会三件事</h2>
+
+  <div class="prose reveal">
+    <p>一颗零件有自己的生命周期：怎么来、怎么用、怎么改。卖方一侧一笔带过——零件按统一模板造好、装好、摆上架，发到商店、装到各平台，那是作者自己的事，用户不需要关心。</p>
+    <p>买方真正打交道的，只有三件事：<strong>拿来用、验一验、说一声就改。</strong></p>
+  </div>
+
+  <div class="things reveal">
+    <div class="thing">
+      <div class="thing-num">TAKE · 一</div>
+      <div class="thing-name">拿来用</div>
+      <p>挑需要的零件直接用，不用懂里面怎么实现。以前得先学会整套东西才能上手；现在一个数据库就是几个文件，说一句要什么，AI 取数、计算、出图全包。</p>
+      <p>用起来像拆一盒现成的零件，而不是装一台复杂的机器。</p>
+    </div>
+    <div class="thing">
+      <div class="thing-num">CHECK · 二</div>
+      <div class="thing-name">验一验</div>
+      <p>结果靠不靠谱，有办法查。每个能力背后都有一条基准线——历史合理区间。结果落在极端位置会自动报警，先查数据链路，再信结论。</p>
+      <p>算出来的东西每次都能复现，不怕别人问：<b>这个数怎么来的？</b></p>
+    </div>
+    <div class="thing">
+      <div class="thing-num">CHANGE · 三</div>
+      <div class="thing-name">说一声就改</div>
+      <p>不满意，用大白话提。以前改逻辑要写代码，改个视角要动整个东西；现在在对话里说一句"这里按 XX 逻辑改一下"，AI 去改对应的部分。</p>
+      <p>视角能单独更新，一处维护，用到它的地方一起受益。</p>
+    </div>
+  </div>
+
+  <figure class="fig reveal">
+    <img src="report/images/fig_life.png" alt="生命周期：卖方造好摆上架，买方拿来用、验一验、说一声就改">
+    <figcaption><b>图 3</b> · 生命周期：卖方造好、摆上架；买方只用会"拿来用、验一验、说一声就改"（示意）</figcaption>
+  </figure>
+</section>
+
+<!-- ════════════════ 能力组合四步 ════════════════ -->
+<section class="section section--tint" id="compose">
+  <div class="section-label reveal">Composition</div>
+  <h2 class="section-title reveal"><span class="n">04</span>把想法变成结果：四步</h2>
+
+  <p class="lead reveal">把零件拼成一件能用的东西，走四步，每一步都是大白话。</p>
+
+  <div class="steps reveal">
+    <div class="step">
+      <div class="step-num">STEP 01</div>
+      <div class="step-name">想清楚<br>要看什么</div>
+      <p>一个具体的投资问题。比如："资金面紧了，机构会不会开始卖，信用利差会不会走阔。"问题越具体，后面越好拼。</p>
+    </div>
+    <div class="step">
+      <div class="step-num">STEP 02</div>
+      <div class="step-name">挑零件</div>
+      <p>看哪些能力能帮上：资金面取一段，机构行为取一段，信用利差取一段。挑零件，不动任何零件内部。</p>
+    </div>
+    <div class="step">
+      <div class="step-num">STEP 03</div>
+      <div class="step-name">拼起来<br>跑一遍</div>
+      <p>三段接起来，端到端跑通，得到一张图、一张表、一段点评。每一步留痕，跑过就能复现。</p>
+    </div>
+    <div class="step">
+      <div class="step-num">STEP 04</div>
+      <div class="step-name">不满意<br>就说</div>
+      <p>说一句大白话，AI 改。改好的拼法可以存下来，下次直接再用——变成你自己的东西。</p>
+    </div>
+  </div>
+
+  <figure class="fig reveal">
+    <img src="report/images/fig_composer.png" alt="能力组合四步：想清楚、挑零件、拼起来跑一遍、不满意就说">
+    <figcaption><b>图 4</b> · 能力组合四步：想清楚要看什么 → 挑零件 → 拼起来跑一遍 → 不满意就说（示意）</figcaption>
+  </figure>
+</section>
+
+<!-- ════════════════ 真实案例 ════════════════ -->
+<section class="section" id="case">
+  <div class="section-label reveal">Real Case</div>
+  <h2 class="section-title reveal"><span class="n">05</span>一套真实跑通的三段传导</h2>
+
+  <div class="prose reveal">
+    <p>用上面这套方法，跑一条真实的链：<strong>流动性 → 机构行为 → 信用利差</strong>。三个环节各取一个主题数据库的零件，拼成一张状态面板，回答一个买方几乎每天要问的问题——环境松紧、机构行为、利差定价，是否同向。以下全部为真实数据：资金面、信用利差更新至 <strong>2026-08-20</strong>，机构行为更新至 <strong>2026-08-19</strong>。</p>
+  </div>
+
+  <figure class="fig reveal">
+    <img src="report/images/fig_panel.png" alt="三段传导链状态面板（真实数据）">
+    <figcaption><b>图 5</b> · 三段拼成一张传导链状态面板，回答"环境、行为、定价是否同向"（真实数据）</figcaption>
+  </figure>
+
+  <div class="case-grid reveal">
+
+    <div class="case-card">
+      <div class="card-head">
+        <div class="ch-row">
+          <span class="ch-name">01 · 资金面</span>
+          <span class="badge">环境：松</span>
+        </div>
+        <div class="card-date">资金面数据库 · 36 视角 · 更新 2026-08-20</div>
+      </div>
+      <div class="card-body">
+        <img class="cimg" src="report/images/fig_fund.png" alt="资金面：存单/票据收益率 1M 3M 6M 序列（真实数据）">
+        <div class="stats">
+          <div class="stat"><span class="s-name">1M 存单</span><span class="s-val gold">0.50%</span></div>
+          <div class="stat"><span class="s-name">3M 存单</span><span class="s-val">0.50%</span></div>
+          <div class="stat"><span class="s-name">6M 存单</span><span class="s-val">0.50%</span></div>
+        </div>
+        <p class="card-note">7 月下旬 1M 档一度下探至 0.38% 后，整条曲线回到 0.5% 平台并走稳，分档判为"松"。流动性充裕，不构成压制。</p>
+        <div class="verdict"><b>判断：</b>环境偏松，资金价格稳定在低位。</div>
+      </div>
+    </div>
+
+    <div class="case-card">
+      <div class="card-head">
+        <div class="ch-row">
+          <span class="ch-name">02 · 机构行为</span>
+          <span class="badge badge--warn">行为：分歧</span>
+        </div>
+        <div class="card-date">机构行为数据库 · 23 视角 · 更新 2026-08-19</div>
+      </div>
+      <div class="card-body">
+        <img class="cimg" src="report/images/fig_beh.png" alt="机构行为：8 类机构最近净买入与周环比（真实数据）">
+        <div class="stats">
+          <div class="stat"><span class="s-name">大型银行</span><span class="s-val neg">-171.2 亿</span></div>
+          <div class="stat"><span class="s-name">中小型银行</span><span class="s-val neg">-575.2 亿</span></div>
+          <div class="stat"><span class="s-name">基金及产品</span><span class="s-val pos">+332.8 亿</span></div>
+          <div class="stat"><span class="s-name">其他</span><span class="s-val pos">+529.3 亿</span></div>
+        </div>
+        <p class="card-note">大型银行大幅净卖出且周环比继续走弱（-82.7 亿），中小型银行减持加剧；基金公司和"其他"在净买入。谁在买、谁在卖，方向不一致。</p>
+        <div class="verdict"><b>判断：</b>银行/券商在减，基金/其他在买——行为处于分歧状态。</div>
+      </div>
+    </div>
+
+    <div class="case-card">
+      <div class="card-head">
+        <div class="ch-row">
+          <span class="ch-name">03 · 信用利差</span>
+          <span class="badge badge--plain">定价：平稳</span>
+        </div>
+        <div class="card-date">信用利差数据库 · 11 视角 · 更新 2026-08-20</div>
+      </div>
+      <div class="card-body">
+        <img class="cimg" src="report/images/fig_spread.png" alt="信用利差：AAA3Y / AA3Y / AA-3Y（真实数据）">
+        <div class="stats">
+          <div class="stat"><span class="s-name">AAA · 3Y</span><span class="s-val">34.9bp</span></div>
+          <div class="stat"><span class="s-name">AA · 3Y</span><span class="s-val">51.9bp</span></div>
+          <div class="stat"><span class="s-name">AA- · 3Y</span><span class="s-val gold">99.9bp</span></div>
+        </div>
+        <p class="card-note">中高等级利差窄幅运行，AA- 3Y 接近 100bp，高收益段仍在高位。利差整体平稳，等级间分化没有消掉。</p>
+        <div class="verdict"><b>判断：</b>定价总体平稳、结构分化，暂无同向走阔的压力信号。</div>
+      </div>
+    </div>
+
+  </div>
+
+  <div class="panel reveal">
+    <div class="panel-head">
+      <span class="ph-t">CONDUCTION PANEL · 三段传导判断</span>
+      <span class="ph-d">数据基准：2026-08-19 / 20 · 全程复现</span>
+    </div>
+    <div class="table-wrap">
+      <table class="panel-tbl">
+        <tr>
+          <th>环节</th>
+          <th>关键读数</th>
+          <th>状态</th>
+        </tr>
+        <tr>
+          <td class="seg">资金面</td>
+          <td class="st-seg">1M 存单 0.50% · 3M 0.50% · 6M 0.50%</td>
+          <td class="st-seg">松</td>
+        </tr>
+        <tr>
+          <td class="seg">机构行为</td>
+          <td class="st-seg">大型银行 -171.2 亿（周 -82.7）· 基金 +332.8 亿 · 其他 +529.3 亿</td>
+          <td class="st-seg"><span class="st-sell">银行/券商减持</span>，<span class="st-buy">基金/其他买入</span> → 分歧</td>
+        </tr>
+        <tr>
+          <td class="seg">信用利差</td>
+          <td class="st-seg">AAA3Y 34.9bp · AA3Y 51.9bp · AA-3Y 99.9bp</td>
+          <td class="st-seg">平稳 · 等级分化</td>
+        </tr>
+        <tr class="verdict-row">
+          <td class="seg">结论</td>
+          <td colspan="2">资金松、机构分歧、利差未同向走阔 —— "环境 → 行为 → 定价"处于不同向状态，值得继续跟踪</td>
+        </tr>
+      </table>
+    </div>
+  </div>
+
+  <p class="prose reveal">同一时刻，松的资金、在减的银行、平稳的利差，三者没有走到同一条直线上。方法论的用处正在这里：它不替你下结论，而是让"环境、行为、定价是否同向"这个问题，每天都有一个可复现的答案。跨段不同向，是分歧，也是值得继续跟下去的观察点。</p>
+</section>
+
+</main>
+
+<!-- ════════════════ Footer ════════════════ -->
+<footer>
+  <div class="footer-motto">「 卖方造零件，<span>买方组装车</span> 」</div>
+  <div>作者：叶青 · 2026</div>
+  <div class="f-rule"></div>
+  <div>
+    GitHub：<a href="https://github.com/timyefi/skill20-arch" target="_blank">timyefi / skill20-arch</a>
+    &nbsp;·&nbsp; 获取 Skill：见 <a href="#" onclick="return false;">skill 商店</a>
+  </div>
+  <div style="margin-top:14px; opacity:0.75;">从 Skill 1.0 到 Skill 2.0 · 研究能力的工厂化 · 方法论介绍页</div>
+</footer>
+
+<script>
+// Scroll Reveal（轻量）
+(function(){
+  var els = document.querySelectorAll('.reveal');
+  if (!('IntersectionObserver' in window)) { els.forEach(function(el){ el.classList.add('visible'); }); return; }
+  var obs = new IntersectionObserver(function(entries){
+    entries.forEach(function(e){
+      if (e.isIntersecting) { e.target.classList.add('visible'); obs.unobserve(e.target); }
+    });
+  }, { threshold: 0.1, rootMargin: '0px 0px -30px 0px' });
+  els.forEach(function(el){ obs.observe(el); });
+})();
+</script>
+
+</body>
+</html>
